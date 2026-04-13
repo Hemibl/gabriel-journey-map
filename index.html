@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משא איש - מפת המסע של ר' גוטל גבריאל גרצובסקי</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=David+Libre:wght@400;500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 18px; }
+  body { font-family: 'David Libre', 'Frank Ruhl Libre', serif; background: #1a1a1a; color: #e8e0d0; min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 20px 40px;
+    text-align: center;
+    border-bottom: 3px solid #c9a84c;
+  }
+  .header h1 { font-family: 'Frank Ruhl Libre', serif; font-size: 2.4em; font-weight: 900; color: #c9a84c; margin-bottom: 6px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+  .header h2 { font-size: 1.5em; font-weight: 500; color: #c8d0e0; }
+  .header .subtitle { font-size: 1.15em; color: #9aabbc; margin-top: 5px; }
+
+  .main-container { display: flex; height: calc(100vh - 100px); }
+  #map { flex: 1; min-height: 500px; z-index: 1; }
+
+  .sidebar {
+    width: 460px;
+    background: #1e1e2e;
+    overflow-y: auto;
+    border-right: 2px solid #333;
+    scrollbar-width: thin;
+    scrollbar-color: #c9a84c44 #1e1e2e;
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-track { background: #1e1e2e; }
+  .sidebar::-webkit-scrollbar-thumb { background: #c9a84c55; border-radius: 3px; }
+  .sidebar::-webkit-scrollbar-thumb:hover { background: #c9a84c99; }
+  .sidebar-header {
+    padding: 18px 22px;
+    background: #252540;
+    border-bottom: 1px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .sidebar-header h3 { color: #c9a84c; font-size: 1.25em; margin-bottom: 12px; }
+
+  .period-filters { display: flex; flex-wrap: wrap; gap: 7px; }
+  .period-btn {
+    padding: 6px 14px;
+    border: 1px solid #444;
+    background: #2a2a3e;
+    color: #aaa;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'David Libre', serif;
+    font-size: 0.95em;
+    transition: all 0.3s;
+  }
+  .period-btn:hover { border-color: #c9a84c; color: #c9a84c; }
+  .period-btn.active { background: #c9a84c; color: #1a1a2e; border-color: #c9a84c; font-weight: 700; }
+
+  .timeline { padding: 10px 18px 30px; }
+
+  .event-card {
+    background: #252540;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 10px 0;
+    border-right: 5px solid #c9a84c;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .event-card:hover { background: #2d2d4a; transform: translateX(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  .event-card.active { background: #2d2d4a; border-right-color: #e74c3c; box-shadow: 0 4px 20px rgba(231,76,60,0.2); }
+
+  .event-card .step-num {
+    display: inline-block; width: 28px; height: 28px; border-radius: 50%;
+    text-align: center; line-height: 28px; font-size: 0.9em; font-weight: 700;
+    color: #fff; margin-left: 8px; vertical-align: middle;
+  }
+  .event-card .date { font-size: 0.88em; color: #c9a84c; font-weight: 700; margin-bottom: 4px; }
+  .event-card .location-name { font-size: 1.15em; font-weight: 700; color: #e8e0d0; margin-bottom: 6px; }
+  .event-card .description { font-size: 0.95em; color: #9a9ab0; line-height: 1.6; }
+  .event-card .event-type {
+    display: inline-block; padding: 3px 12px; border-radius: 12px;
+    font-size: 0.82em; font-weight: 700; margin-top: 7px;
+  }
+
+  /* --- שיפור 3: ציטוטים בסיידבר --- */
+  .card-quote {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(201,168,76,0.08);
+    border-right: 3px solid #c9a84c;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    font-size: 0.9em;
+    color: #c9b870;
+    line-height: 1.55;
+    position: relative;
+  }
+  .card-quote::before {
+    content: '"';
+    font-size: 2em;
+    color: #c9a84c55;
+    position: absolute;
+    top: -4px;
+    right: 10px;
+    line-height: 1;
+    font-style: normal;
+  }
+
+  .type-massacre { background: #e74c3c22; color: #e74c3c; border: 1px solid #e74c3c44; }
+  .type-ghetto { background: #e67e2222; color: #e67e22; border: 1px solid #e67e2244; }
+  .type-escape { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7144; }
+  .type-hiding { background: #3498db22; color: #3498db; border: 1px solid #3498db44; }
+  .type-partisan { background: #9b59b622; color: #9b59b6; border: 1px solid #9b59b644; }
+  .type-camp { background: #95a5a622; color: #95a5a6; border: 1px solid #95a5a644; }
+
+  .leaflet-popup-content-wrapper { background: #1e1e2e !important; color: #e8e0d0 !important; border-radius: 10px !important; border: 1px solid #c9a84c !important; direction: rtl; }
+  .leaflet-popup-tip { background: #1e1e2e !important; }
+  .leaflet-popup-content { font-family: 'David Libre', serif !important; font-size: 16px !important; line-height: 1.6 !important; min-width: 220px; }
+  .popup-title { font-size: 1.2em; font-weight: 700; color: #c9a84c; margin-bottom: 4px; }
+  .popup-date { font-size: 0.88em; color: #7a8296; margin-bottom: 6px; }
+  .popup-text { color: #b0b0c8; font-size: 1em; }
+  .popup-quote { border-right: 3px solid #c9a84c; padding-right: 10px; margin: 8px 0 0; font-style: italic; color: #a0a0b8; font-size: 0.92em; }
+
+  /* --- שיפור 5: שורת סטטיסטיקות --- */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    background: #13132a;
+    border-bottom: 2px solid #c9a84c33;
+  }
+  .stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    border-left: 1px solid #2a2a3e;
+    max-width: 200px;
+  }
+  .stat-item:last-child { border-left: none; }
+  .stat-num {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 1.7em;
+    font-weight: 900;
+    color: #c9a84c;
+    line-height: 1;
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.72em;
+    color: #7a8296;
+    display: block;
+    margin-top: 3px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 900px) {
+    .main-container { flex-direction: column-reverse; }
+    .sidebar { width: 100%; height: 40vh; }
+    #map { height: 60vh; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat-item { min-width: 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>משא איש</h1>
+  <h2>מפת המסע של ר' גוטל גבריאל גרצובסקי בימי השואה</h2>
+  <div class="subtitle">יוני 1941 - אביב 1943 | מערב בלארוס - מחוז נובוגרודק (וויבלאסט גרודנו)</div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><span class="stat-num">13</span><span class="stat-label">תחנות במסע</span></div>
+  <div class="stat-item"><span class="stat-num">~21</span><span class="stat-label">חודשי הישרדות</span></div>
+  <div class="stat-item"><span class="stat-num">3</span><span class="stat-label">בריחות</span></div>
+</div>
+
+<div class="main-container">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3>תחנות המסע</h3>
+      <div class="period-filters">
+        <button class="period-btn active" data-period="all">הכל</button>
+        <button class="period-btn" data-period="1">גטו זטיל 1941-42</button>
+        <button class="period-btn" data-period="2">טבח ובריחה 1942</button>
+        <button class="period-btn" data-period="3">מחנה ונדודים 1942-43</button>
+        <button class="period-btn" data-period="4">פרטיזנים 1943</button>
+      </div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<script>
+// =====================================================
+// VERIFIED COORDINATES - researched against real sources
+// =====================================================
+// זטיל (Zdzięcioł) = Dyatlovo (Дзятлава): 53.4614°N, 25.4072°E  [CONFIRMED]
+// נובוגרודק (Nowogródek) = Novogrudok (Навагрудак): 53.5942°N, 25.8194°E  [CONFIRMED]
+// דבורץ (Dworzec) = Dvorets (Дворец, Dyatlovo district): 53.4069°N, 25.5706°E  [CONFIRMED - 13km SE of Dyatlovo]
+// סלונים (Słonim) = Slonim: 53.0875°N, 25.3167°E  [CONFIRMED]
+// באראנוביץ' (Baranowicze) = Baranovichi: 53.1328°N, 26.0139°E  [CONFIRMED]
+// יער קורפיאש (Kurpiasz) = south of Dyatlovo, first massacre site: ~53.445°N, 25.405°E  [ESTIMATED]
+// קונה (Kuna) = gathering point near Zhetl: ~53.455°N, 25.400°E  [ESTIMATED - walkable from town center]
+// יער ליפיצ'אנסקי (Lipichanskaya Pushcha) = SW of Dyatlovo, Mosty district: ~53.40°N, 25.15°E  [ESTIMATED]
+
+const events = [
+  {
+    id: 1, period: 1,
+    date: "25 ביוני 1941",
+    location: "זטיל (Zdzięcioł, כיום Dyatlovo)",
+    hebrewName: "זטיל - כיבוש גרמני והקמת הגטו",
+    lat: 53.4614, lng: 25.4072,
+    type: "ghetto", typeLabel: "כיבוש וגטו",
+    description: "הגרמנים כובשים את העיירה. פקודות ראשונות: טלאי צהוב, איסור הליכה על המדרכה - עונש מוות. כ-3,000 יהודים נדחסים לגטו בשלושה רחובות. גבריאל עם 15 נפשות בחדר אחד: הוא, אשתו סוניה, שלושת ילדיו דינה, הרצל ואריה, אחיו ומשפחתו, אביו שלמה, חמותו ואחות אשתו.",
+    quote: "עיירה של שלושת אלפים יהודים ודחסו אותם בשלושה רחובות קטנים"
+  },
+  {
+    id: 2, period: 1,
+    date: "חורף 1941",
+    location: "זטיל - ככר השוק",
+    hebrewName: "זטיל - חילוט רכוש ורצח פומבי",
+    lat: 53.4620, lng: 25.4085,
+    type: "ghetto", typeLabel: "חילוט ורצח",
+    description: "פקודת מפקד האיזור מנובוגרודק: מסירת כל חפצי ערך - כסף, זהב, תכשיטים, נחושת. תור ארוך בקור צורב. אשה שנמצאה עם טבעת בכיסה נורתה בככר השוק לעיני כולם. בנפרד, 120 גברים נלקחו לנובוגרודק ונורו.",
+    quote: "מייד ראינו איך מובילים את האשה הזאת החוצה ומעמידים אותה באמצע ככר השוק"
+  },
+  {
+    id: 3, period: 2,
+    date: "30 באפריל 1942",
+    location: "יער קורפיאש (Kurpiasz), דרום זטיל",
+    hebrewName: "השחיטה הראשונה - 960+ נרצחים",
+    lat: 53.4480, lng: 25.4050,
+    type: "massacre", typeLabel: "טבח - אקציה ראשונה",
+    description: "כל יהודי הגטו גורשו לבית הקברות הישן ליד בית הכנסת. מיון: בעלי תעודות עבודה הופרדו. גבריאל ניצל עם אביו שלמה, אשתו סוניה וילדיו. אחיו ומשפחתו הובלו ליער קורפיאש ונורו בקבוצות של 20. אחיינו מאירקע (בן 13, בנו של אחיו) ברח מהקברים.",
+    quote: "דוד, אני כבר נותרתי יתום. כבר ירו בהם. אני התחבאתי כשהובילו אותנו אל הקברים"
+  },
+  {
+    id: 4, period: 2,
+    date: "6 באוגוסט 1942 (ער״ח אלול)",
+    location: "גטו זטיל",
+    hebrewName: "השחיטה השנייה - הפרידה מהאב",
+    lat: 53.4608, lng: 25.4065,
+    type: "massacre", typeLabel: "טבח - אקציה שנייה",
+    description: "הגטו מוקף שוב. גבריאל נפרד מאביו שלמה בן ה-70 לנצח. שלמה מסרב להתחבא: 'אני כבר בן 70, מספיק לי לחיות. האל היקר יהיה אביך'. המשפחה מתחבאת. שכנים שהתגלו נהרגו ברימוני יד - 17 נפשות. בערב - בריחה.",
+    quote: "להתראות ילדי. עליך להשאר בחיים ולנקום ברוצחים ששופכים את דמנו התמים"
+  },
+  {
+    id: 5, period: 2,
+    date: "6-7 באוגוסט 1942",
+    location: "שדות השיפון, כ-200 מ' דרומית לזטיל",
+    hebrewName: "הבריחה - מות דינה בשדה השיפון",
+    lat: 53.4595, lng: 25.4040,
+    type: "escape", typeLabel: "בריחה ומוות",
+    description: "בריחה מהמחבוא בשעה 8 בערב, בעונת הקציר. דינה'לה (18) נורתה מייד. בניו הרצל (19) ואריה (16) ואחיינו מאירקע (13) נבלעו בשדה השיפון הגבוה וברחו. גבריאל ואשתו סוניה נתפסו כ-200 מטר מהעיר ע״י איכרים שהסגירו אותם למשטרה.",
+    quote: "ילדה יקרה שלי... את שוכבת לדאבוננו מתחת לכיפת השמיים על פני השדות"
+  },
+  {
+    id: 6, period: 2,
+    date: "שבת, 8 באוגוסט 1942",
+    location: "קונה (Kuna), סמוך לזטיל",
+    hebrewName: "קונה - ריכוז ניצולים, פרידה מסוניה",
+    lat: 53.4560, lng: 25.3980,
+    type: "camp", typeLabel: "ריכוז ומיון",
+    description: "מובלים דרך השוק לקונה. ניצולים מרוכזים תחת שמירת ליטאים ואוקראינים. מיון: 150 גברים עובדים נבחרים. נשים וילדים - לבית הכנסת ומשם למוות. הפרידה האחרונה מסוניה - היא אומרת: 'אולי עוד תהיה אבא לילדינו'. גבריאל מקבל מכת אלת גומי על הראש ואיבד את מראה עיניו לאן מובילים את סוניה.",
+    quote: "אני אומר לאשתי 'אני הולך איתך' והיא אומרת 'לא, אולי עוד תהיה אבא לילדינו'"
+  },
+  {
+    id: 7, period: 3,
+    date: "אוגוסט-ספטמבר 1942",
+    location: "נובוגרודק (Novogrudok) - מחנה ריכוז",
+    hebrewName: "נובוגרודק - מחנה ריכוז",
+    lat: 53.5942, lng: 25.8194,
+    type: "camp", typeLabel: "מחנה ריכוז",
+    description: "150 הגברים מזטיל מובלים במשאיות כ-40 ק״מ צפון-מזרח למחנה ריכוז בנובוגרודק. 30 גרם לחם ומים ביום. הקומיסר מכה באלות עד שנשברות. חצי מהאסירים נרצחים בעבודה ובטבח. גבריאל שומע שבדבורץ, 12 ק״מ מזטיל, יהודים עדיין חיים.",
+    quote: "כל יום נהג לבוא הקומיסר עם מוט גדול... ולהרביץ עד שהמוט נשבר על גבינו"
+  },
+  {
+    id: 8, period: 3,
+    date: "ליל ער״ה תש״ג (ספטמבר 1942)",
+    location: "בריחה: נובוגרודק ← דבורץ",
+    hebrewName: "בריחה בלילות - גדרות תיל וכלבים",
+    lat: 53.5100, lng: 25.6800,
+    type: "escape", typeLabel: "בריחה",
+    description: "בריחה עם 6 אנשים דרך שער המחנה. עוברים מתחת לגדרות תיל כפולות, מתחמקים ממשטרה חמושה וכלבים. הלילה הראשון - הגיעו בטעות קרוב מדי לנובוגרודק. שכבו ביום מתחת לענפים ושמעו משאיות גרמניות. בלילה השני המשיכו.",
+    quote: "איפה שהיה כלב נובח נמנענו מלצאת, עברנו מלמטה, מתחת לגדרות התיל. הלכנו כל הלילה"
+  },
+  {
+    id: 9, period: 3,
+    date: "א' דר״ה תש״ג (ספטמבר 1942)",
+    location: "דבורץ (Dvorets / Dworzec)",
+    hebrewName: "דבורץ - מפגש עם הבן הניצול",
+    lat: 53.4069, lng: 25.5706,
+    type: "ghetto", typeLabel: "עיירה / גטו",
+    description: "הגעה ביום א' של ראש השנה, הלכו עם העובדים כאילו חוזרים מעבודה. עיירה 13 ק״מ דרום-מזרח לזטיל. הקומיסר המקומי הגן על היהודים - 'אני צריך עובדים'. מוצא את בנו אריה ואת אחיינו מאירקע. בנו הרצל נהרג ע״י איכר ביחד עם המשטרה ביער קטן, שלושה ימים קודם.",
+    quote: "הנה פגשתי את בני היחידי... והבן השני, בני היקר והאהוב נפל לדאבון הלב קרבן תמים ביער קטן לא רחוק מעיירת הולדתו"
+  },
+  {
+    id: 10, period: 2,
+    date: "חורף 1942-1943",
+    location: "דבורץ - שחיטה ומרד",
+    hebrewName: "דבורץ - מרד מזוין ובריחה",
+    lat: 53.4075, lng: 25.5720,
+    type: "massacre", typeLabel: "שחיטה ומרד",
+    description: "הגרמנים מקיפים את הגטו עם משאיות. הקומיסר המגן לא מופיע. הנוער היהודי מארגן מרד - חותכים גדרות תיל בצעקות 'הורה!'. יריות, שני בתים עולים באש. גבריאל, בנו אריה ואחיינו מאירקע מתחבאים בחנות. בשעה 2 בלילה בורחים - גבריאל רץ ראשון כפיתיון.",
+    quote: "שומעים צעקות 'הורה הורה הורה!' התחילו לחתוך את גדר התיל. ופה התחילו לירות"
+  },
+  {
+    id: 11, period: 3,
+    date: "חורף 1942-1943",
+    location: "כפרים ויערות בין דבורץ לזטיל",
+    hebrewName: "נדודים - בין כפרים ויערות בקור",
+    lat: 53.4300, lng: 25.4900,
+    type: "hiding", typeLabel: "מסתור ונדודים",
+    description: "נדודים בקור כבד. 11 יום אצל איכר מכר, כ-8 ק״מ מדבורץ. גורשו. לנו בבית נטוש ביער. אחיינו מאירקע נשאר עם קבוצה אחרת בבית - איכרים הלשינו לגרמנים, שהקיפו את הבית והעלוהו באש עם כולם. מאירקע - שניצל מהשחיטה הראשונה, מהשניה ומדבורץ - נהרג שם. גבריאל ואריה נשארים לבד.",
+    quote: "אין כסף. אין חפצים. הקור גדול. לאן ללכת ביער? איננו יודעים את הדרך"
+  },
+  {
+    id: 12, period: 3,
+    date: "חורף 1943",
+    location: "כפר ליד דבורץ",
+    hebrewName: "שוד בדרך - רגלי הבן קופאות",
+    lat: 53.4150, lng: 25.5500,
+    type: "hiding", typeLabel: "שוד ופציעה",
+    description: "איכר עוקב אחריהם, שולף אקדח. גוזל מגפיים ומעיל. אריה בורח יחף 2 ק״מ בשלג ובכפור - רגליו קופאות קשות, עור נושר. אשת האיכר מרחמת ומטפלת ברגלי אריה שבועיים - אמבטיות חמות וחמאה. אחרי חודש אריה מתחיל ללכת שוב.",
+    quote: "בני עומד כך יחף בלי מגפיים... שני קילומטר ללא מגפיים. רגליו קפאו"
+  },
+  {
+    id: 13, period: 4,
+    date: "אביב 1943 (משוער)",
+    location: "יער ליפיצ'אנסקי (Lipichanskaya Pushcha)",
+    hebrewName: "היער - הצטרפות לפרטיזנים היהודיים",
+    lat: 53.4000, lng: 25.1500,
+    type: "partisan", typeLabel: "פרטיזנים",
+    description: "לאחר כחודש אצל האיכר, מגיעים פרטיזנים יהודיים - ה'פלוגה הז'טלית' (Zhetel Detachment) שפעלה ביער ליפיצ'אנסקי. משלמים לאיכר, מושיבים את גבריאל ואת בנו אריה בעגלה ולוקחים ליער. גבריאל ואריה הופכים לפרטיזנים. כאן נגמר החלק הראשון של היומן.",
+    quote: "הפרטיזנים היהודיים שילמו היטב לנוצרי והושיבו אותנו בעגלה והסיעו אותנו אל היער, ונהיינו פרטיזנים"
+  }
+];
+
+// Context cities mentioned in the diary (not visited, only referenced)
+const contextCities = [
+  { name: "סלונים (Slonim)", lat: 53.0875, lng: 25.3167, note: "הוזכרה ביומן: 'בסלונים התרחשה השחיטה האחרונה'" },
+  { name: "באראנוביץ' (Baranovichi)", lat: 53.1328, lng: 26.0139, note: "הוזכרה ביומן: 'בבארוונוביץ' הייתה שחיטה גדולה, מצאו אצלהם נשק'" },
+  { name: "סמולנסק (Smolensk)", lat: 54.7826, lng: 32.0453, note: "הוזכרה כהבטחת שווא: 'יסיעו אותנו לסמולנסק לעבודה'" }
+];
+
+// ============ MAP SETUP ============
+const map = L.map('map', {
+  center: [53.46, 25.50],
+  zoom: 10,
+  zoomControl: false
+});
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+// Esri tiles (work from local files, English labels)
+const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '&copy; Esri, HERE, Garmin', maxZoom: 18
+});
+const esriStreets = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '&copy; Esri, HERE, Garmin', maxZoom: 18
+});
+const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '&copy; Esri', maxZoom: 18
+});
+const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 });
+const satellite = L.layerGroup([esriSat, esriLabels]);
+
+esriTopo.addTo(map);
+L.control.layers({ 'טופוגרפית': esriTopo, 'רחובות': esriStreets, 'לוויין': satellite }, null, { position: 'topright' }).addTo(map);
+
+// ============ COLORS ============
+const typeColors = {
+  ghetto: '#e67e22', massacre: '#e74c3c', escape: '#2ecc71',
+  hiding: '#3498db', partisan: '#9b59b6', camp: '#95a5a6'
+};
+
+// ============ MARKERS ============
+const markers = {};
+const allCoords = [];
+
+events.forEach((event, idx) => {
+  allCoords.push([event.lat, event.lng]);
+  const color = typeColors[event.type];
+
+  const icon = L.divIcon({
+    className: 'x',
+    html: `<div style="
+      width:28px;height:28px;background:${color};border:3px solid #fff;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:12px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.6);color:#fff;font-weight:bold;font-family:Arial,sans-serif;
+    ">${idx+1}</div>`,
+    iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-16]
+  });
+
+  const marker = L.marker([event.lat, event.lng], { icon }).addTo(map);
+  marker.bindPopup(`
+    <div style="min-width:220px;max-width:300px;">
+      <div class="popup-title">${event.hebrewName}</div>
+      <div class="popup-date">${event.date}</div>
+      <div class="popup-text">${event.description}</div>
+      ${event.quote ? `<div class="popup-quote">"${event.quote}"</div>` : ''}
+    </div>
+  `, { maxWidth: 320, keepInView: true, autoPanPadding: [20, 20] });
+  markers[event.id] = marker;
+});
+
+// ============ DISTANCE LABELS LAYER ============
+const distanceLayerGroup = L.layerGroup().addTo(map);
+
+// ============ DISTANCE HELPER ============
+function haverDist(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+function midpoint(lat1, lng1, lat2, lng2) {
+  return [(lat1+lat2)/2, (lng1+lng2)/2];
+}
+
+function distLabel(km, extra) {
+  return `<div style="
+    background:rgba(26,26,46,0.92);color:#f0e68c;padding:4px 10px;border-radius:20px;
+    font-family:'David Libre',serif;font-size:13px;font-weight:700;white-space:nowrap;
+    border:1px solid rgba(240,230,140,0.4);direction:rtl;pointer-events:none;
+    box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  ">✈ ${km} ק"מ${extra ? ' · ' + extra : ''}</div>`;
+}
+
+// ============ ROUTE LINES + DISTANCE LABELS ============
+
+// Zhetl internal events (1-6) - within town, no distance label
+const zhetlCoords = events.slice(0,6).map(e => [e.lat, e.lng]);
+L.polyline(zhetlCoords, { color: '#e74c3c', weight: 2.5, opacity: 0.5, dashArray: '4,6' }).addTo(map);
+
+// Kuna → Novogrudok (6 → 7): transport by trucks
+const d67 = haverDist(53.4560,25.3980, 53.5942,25.8194);
+const m67 = midpoint(53.4560,25.3980, 53.5942,25.8194);
+L.polyline([[53.4560,25.3980],[53.5942,25.8194]], { color: '#95a5a6', weight: 3, opacity: 0.65, dashArray: '10,6' }).addTo(map);
+L.marker(m67, { icon: L.divIcon({ className:'x', html: distLabel(d67,'במשאיות'), iconSize:null, iconAnchor:[55,10] }), interactive:false }).addTo(distanceLayerGroup);
+
+// Novogrudok → Dvorets escape (7 → 9): on foot, two nights
+const d79 = haverDist(53.5942,25.8194, 53.4069,25.5706);
+const m79 = midpoint(53.5942,25.8194, 53.4069,25.5706);
+L.polyline([[53.5942,25.8194],[53.5100,25.6800],[53.4069,25.5706]], { color: '#2ecc71', weight: 3, opacity: 0.7, dashArray: '6,8' }).addTo(map);
+L.marker(m79, { icon: L.divIcon({ className:'x', html: distLabel(d79,'רגלית - שני לילות'), iconSize:null, iconAnchor:[80,10] }), interactive:false }).addTo(distanceLayerGroup);
+
+// Zhetl → Dvorets (reference distance from diary)
+const dZD = haverDist(53.4614,25.4072, 53.4069,25.5706);
+// (mentioned in diary as ~12 km - shown in Dvorets card)
+
+// Dvorets internal (9 → 10)
+L.polyline([[53.4069,25.5706],[53.4075,25.5720]], { color: '#e74c3c', weight: 2, opacity: 0.5 }).addTo(map);
+
+// Dvorets → wandering (10 → 11)
+const d1011 = haverDist(53.4075,25.5720, 53.4300,25.4900);
+const m1011 = midpoint(53.4075,25.5720, 53.4300,25.4900);
+L.polyline([[53.4075,25.5720],[53.4300,25.4900]], { color: '#3498db', weight: 2.5, opacity: 0.6, dashArray: '4,4' }).addTo(map);
+L.marker(m1011, { icon: L.divIcon({ className:'x', html: distLabel(d1011,'רגלית בלילות'), iconSize:null, iconAnchor:[65,10] }), interactive:false }).addTo(distanceLayerGroup);
+
+// Wandering → robbery village (11 → 12)
+const d1112 = haverDist(53.4300,25.4900, 53.4150,25.5500);
+const m1112 = midpoint(53.4300,25.4900, 53.4150,25.5500);
+L.polyline([[53.4300,25.4900],[53.4150,25.5500]], { color: '#3498db', weight: 2.5, opacity: 0.6, dashArray: '4,4' }).addTo(map);
+L.marker(m1112, { icon: L.divIcon({ className:'x', html: distLabel(d1112), iconSize:null, iconAnchor:[35,10] }), interactive:false }).addTo(distanceLayerGroup);
+
+// Robbery village → partisans forest (12 → 13): by cart
+const d1213 = haverDist(53.4150,25.5500, 53.4000,25.1500);
+const m1213 = midpoint(53.4150,25.5500, 53.4000,25.1500);
+L.polyline([[53.4150,25.5500],[53.4000,25.1500]], { color: '#9b59b6', weight: 3, opacity: 0.7, dashArray: '8,5' }).addTo(map);
+L.marker(m1213, { icon: L.divIcon({ className:'x', html: distLabel(d1213,'בעגלה עם הפרטיזנים'), iconSize:null, iconAnchor:[80,10] }), interactive:false }).addTo(distanceLayerGroup);
+
+// ============ CONTEXT CITIES ============
+contextCities.forEach(city => {
+  const icon = L.divIcon({
+    className: 'x',
+    html: `<div style="width:14px;height:14px;background:#555;border:2px solid #999;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
+    iconSize: [14,14], iconAnchor: [7,7]
+  });
+  L.marker([city.lat, city.lng], { icon }).addTo(map)
+    .bindTooltip(`<div style="direction:rtl;font-family:David Libre,serif;"><b>${city.name}</b><br><span style="color:#aaa;font-size:0.9em;">${city.note}</span></div>`, {
+      direction: 'top', offset: [0,-10],
+      className: 'context-tip'
+    });
+});
+
+// ============ HEBREW PLACE LABELS ON MAP ============
+const labels = [
+  { name: 'זטיל (Dyatlovo)', lat: 53.4660, lng: 25.4072, size: '14px' },
+  { name: 'נובוגרודק', lat: 53.6020, lng: 25.8194, size: '13px' },
+  { name: 'דבורץ (Dvorets)', lat: 53.4010, lng: 25.5706, size: '13px' },
+  { name: 'יער ליפיצ\'אנסקי', lat: 53.4050, lng: 25.1500, size: '12px' },
+];
+
+labels.forEach(l => {
+  L.marker([l.lat, l.lng], {
+    icon: L.divIcon({
+      className: 'x',
+      html: `<div style="
+        background:rgba(26,26,46,0.88);color:#c9a84c;padding:2px 8px;border-radius:4px;
+        font-family:'David Libre',serif;font-size:${l.size};font-weight:700;white-space:nowrap;
+        border:1px solid rgba(201,168,76,0.3);direction:rtl;pointer-events:none;
+      ">${l.name}</div>`,
+      iconSize: null, iconAnchor: [40, -8]
+    }),
+    interactive: false
+  }).addTo(map);
+});
+
+// ============ LEGEND ============
+const legend = L.control({ position: 'topleft' });
+legend.onAdd = function() {
+  const d = L.DomUtil.create('div');
+  d.style.cssText = 'background:rgba(30,30,46,0.97);padding:12px 18px;border-radius:12px;border:1px solid #555;direction:rtl;font-family:David Libre,serif;min-width:160px;';
+  const items = [
+    ['#e67e22','גטו / כיבוש'], ['#e74c3c','טבח / שחיטה'], ['#2ecc71','בריחה'],
+    ['#3498db','מסתור / נדודים'], ['#95a5a6','מחנה ריכוז'], ['#9b59b6','פרטיזנים'],
+  ];
+  d.innerHTML = `<div style="color:#c9a84c;font-weight:700;margin-bottom:8px;font-size:1em;">מקרא</div>` +
+    items.map(([c,t]) => `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:0.88em;color:#ccc;"><div style="width:12px;height:12px;border-radius:50%;background:${c};flex-shrink:0;"></div>${t}</div>`).join('') +
+    `<div style="display:flex;align-items:center;gap:8px;margin:6px 0 0;padding-top:6px;border-top:1px solid #444;font-size:0.88em;color:#ccc;"><div style="width:12px;height:12px;border-radius:50%;background:#555;border:2px solid #999;flex-shrink:0;"></div>עיר הקשר (הוזכרה)</div>`;
+  return d;
+};
+legend.addTo(map);
+
+// ============ DISTANCE SCALE ============
+L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
+
+// ============ DISTANCE TOGGLE BUTTON ============
+const distToggle = L.control({ position: 'topright' });
+distToggle.onAdd = function() {
+  const btn = L.DomUtil.create('button');
+  btn.innerHTML = '👣 מרחקים';
+  btn.title = 'הצג/הסתר תוויות מרחק';
+  btn.style.cssText = `
+    display:block; padding:6px 14px; cursor:pointer;
+    background:rgba(30,30,46,0.95); color:#f0e68c;
+    border:1px solid rgba(240,230,140,0.4); border-radius:8px;
+    font-family:'David Libre',serif; font-size:14px; font-weight:700;
+    box-shadow:0 2px 6px rgba(0,0,0,0.4); direction:rtl;
+    transition: background 0.2s;
+  `;
+  let visible = true;
+  L.DomEvent.on(btn, 'click', () => {
+    visible = !visible;
+    if (visible) {
+      distanceLayerGroup.addTo(map);
+      btn.style.background = 'rgba(30,30,46,0.95)';
+      btn.style.color = '#f0e68c';
+      btn.style.borderColor = 'rgba(240,230,140,0.4)';
+    } else {
+      distanceLayerGroup.remove();
+      btn.style.background = 'rgba(30,30,46,0.6)';
+      btn.style.color = '#666';
+      btn.style.borderColor = '#444';
+    }
+    L.DomEvent.stopPropagation(btn);
+  });
+  return btn;
+};
+distToggle.addTo(map);
+
+// ============ SIDEBAR TIMELINE ============
+const timelineEl = document.getElementById('timeline');
+events.forEach((event, idx) => {
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.dataset.id = event.id;
+  card.dataset.period = event.period;
+  const color = typeColors[event.type];
+
+  // Distance from previous significant location (skip internal Zhetl events)
+  let distBadge = '';
+  if (idx > 0) {
+    const prev = events[idx - 1];
+    const km = haverDist(prev.lat, prev.lng, event.lat, event.lng);
+    if (km >= 2) {
+      distBadge = `<span style="
+        display:inline-block;background:rgba(240,230,140,0.15);color:#f0e68c;
+        border:1px solid rgba(240,230,140,0.35);border-radius:12px;
+        font-size:0.78em;padding:2px 10px;margin-right:6px;font-weight:700;
+      ">✈ ${km} ק"מ</span>`;
+    }
+  }
+
+  card.innerHTML = `
+    <div class="date"><span class="step-num" style="background:${color}">${idx+1}</span> ${event.date} ${distBadge}</div>
+    <div class="location-name">${event.hebrewName}</div>
+    <div class="description">${event.description}</div>
+    ${event.quote ? `<div class="card-quote">${event.quote}</div>` : ''}
+    <span class="event-type type-${event.type}">${event.typeLabel}</span>
+  `;
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.event-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    // שיפור 1: גלילה אוטומטית לכרטיס הפעיל
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    map.flyTo([event.lat, event.lng], event.id <= 6 ? 14 : 12, { duration: 1.2 });
+    markers[event.id].openPopup();
+  });
+  timelineEl.appendChild(card);
+});
+
+// ============ PERIOD FILTERS ============
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const p = btn.dataset.period;
+    document.querySelectorAll('.event-card').forEach(c => {
+      c.style.display = (p === 'all' || c.dataset.period === p) ? 'block' : 'none';
+    });
+    if (p !== 'all') {
+      const pe = events.filter(e => e.period == p);
+      map.flyToBounds(L.latLngBounds(pe.map(e => [e.lat, e.lng])).pad(0.5), { duration: 1.2 });
+    } else {
+      map.flyToBounds(L.latLngBounds(allCoords).pad(0.15), { duration: 1.2 });
+    }
+  });
+});
+</script>
+</body>
+</html>
