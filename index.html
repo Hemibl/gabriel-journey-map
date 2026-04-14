@@ -1912,6 +1912,21 @@ familyMembers.forEach(member => {
 // FEATURE 3: PHOTO GALLERY + LIGHTBOX
 // =====================================================
 let currentPhotoIndex = 0;
+const photoBlobCache = {};
+
+async function loadPhotoBlob(url) {
+  if (photoBlobCache[url]) return photoBlobCache[url];
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const blob = await resp.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    photoBlobCache[url] = blobUrl;
+    return blobUrl;
+  } catch(e) {
+    return null;
+  }
+}
 
 function renderPhotosGrid() {
   const grid = document.getElementById('photos-grid');
@@ -1923,18 +1938,27 @@ function renderPhotosGrid() {
     const imgWrapper = document.createElement('div');
     imgWrapper.style.position = 'relative';
 
-    const img = document.createElement('img');
-    img.src = photo.url;
-    img.alt = photo.description;
-    img.loading = 'lazy';
+    // Placeholder while loading
+    const placeholder = document.createElement('div');
+    placeholder.className = 'photo-error';
+    placeholder.innerHTML = `<span style="font-size:1.8em;opacity:0.4">⏳</span><span style="opacity:0.5">טוען...</span>`;
+    imgWrapper.appendChild(placeholder);
 
-    img.onerror = function() {
-      this.style.display = 'none';
-      const errDiv = document.createElement('div');
-      errDiv.className = 'photo-error';
-      errDiv.innerHTML = `<span style="font-size:1.8em;">🖼</span><span>תמונה לא זמינה</span><a href="${photo.sourceUrl}" target="_blank" onclick="event.stopPropagation()" style="color:#c9a84c;font-size:0.85em;">פתח מקור</a>`;
-      imgWrapper.appendChild(errDiv);
-    };
+    const img = document.createElement('img');
+    img.alt = photo.description;
+    img.style.display = 'none';
+
+    loadPhotoBlob(photo.url).then(blobUrl => {
+      if (blobUrl) {
+        img.onload = () => {
+          placeholder.remove();
+          img.style.display = '';
+        };
+        img.src = blobUrl;
+      } else {
+        placeholder.innerHTML = `<span style="font-size:1.8em;">🖼</span><span>תמונה לא זמינה</span><a href="${photo.sourceUrl}" target="_blank" onclick="event.stopPropagation()" style="color:#c9a84c;font-size:0.85em;">פתח מקור</a>`;
+      }
+    });
 
     imgWrapper.appendChild(img);
     thumb.appendChild(imgWrapper);
@@ -1971,18 +1995,20 @@ function updateLightbox() {
   container.innerHTML = '';
 
   const img = document.createElement('img');
-  img.src = photo.url;
   img.alt = photo.description;
-
-  img.onerror = function() {
-    this.remove();
-    const errDiv = document.createElement('div');
-    errDiv.className = 'lb-error';
-    errDiv.innerHTML = `<span style="font-size:3em;">🖼</span><span>תמונה לא זמינה</span><a href="${photo.sourceUrl}" target="_blank">פתח במקור</a>`;
-    container.appendChild(errDiv);
-  };
-
   container.appendChild(img);
+
+  loadPhotoBlob(photo.url).then(blobUrl => {
+    if (blobUrl) {
+      img.src = blobUrl;
+    } else {
+      img.remove();
+      const errDiv = document.createElement('div');
+      errDiv.className = 'lb-error';
+      errDiv.innerHTML = `<span style="font-size:3em;">🖼</span><span>תמונה לא זמינה</span><a href="${photo.sourceUrl}" target="_blank">פתח במקור</a>`;
+      container.appendChild(errDiv);
+    }
+  });
 
   document.getElementById('lb-city').textContent = photo.city;
   document.getElementById('lb-year').textContent = photo.year;
