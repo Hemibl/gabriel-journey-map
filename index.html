@@ -3,55 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>משא איש - מפת המסע של ר' גוטל גבריאל גרצובסקי</title>
-<meta property="og:title" content="משא איש - מפת המסע של ר׳ גוטל גבריאל גרצובסקי" />
-<meta property="og:description" content="מפה אינטראקטיבית של מסע הישרדות משפחתי במהלך השואה - ג׳טיל, בלארוס 1941-1943" />
-<meta property="og:image" content="https://hemibl.github.io/gabriel-journey-map/gabriel_map_share.jpg" />
-<meta property="og:url" content="https://hemibl.github.io/gabriel-journey-map/" />
-<meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary_large_image" />
+<title>משא איש - מפת מסעו של ר' גוטל גבריאל גרצובסקי</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=David+Libre:wght@400;500;700&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { font-size: 18px; }
-  body { font-family: 'David Libre', 'Frank Ruhl Libre', serif; background: #1a1a1a; color: #e8e0d0; min-height: 100vh; }
+  body { font-family: 'David Libre', 'Frank Ruhl Libre', serif; background: #1a1a1a; color: #e8e0d0; min-height: 100vh; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
   .header {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    padding: 20px 40px;
+    padding: 14px 40px;
     text-align: center;
-    border-bottom: 3px solid #c9a84c;
+    border-bottom: 1px solid #3a3a50;
+    flex-shrink: 0;
   }
-  .header h1 { font-family: 'Frank Ruhl Libre', serif; font-size: 2.4em; font-weight: 900; color: #c9a84c; margin-bottom: 6px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-  .header h2 { font-size: 1.5em; font-weight: 500; color: #c8d0e0; }
-  .header .subtitle { font-size: 1.15em; color: #9aabbc; margin-top: 5px; }
+  .header h1 { font-family: 'Frank Ruhl Libre', serif; font-size: 2em; font-weight: 900; color: #d4c5a0; margin-bottom: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); letter-spacing: 1px; }
+  .header h2 { font-size: 1.2em; font-weight: 500; color: #c8d0e0; }
+  .header .subtitle { font-size: 0.95em; color: #8a9aab; margin-top: 3px; }
 
-  .main-container { display: flex; height: calc(100vh - 100px); }
+  .header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .header-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px;
+    color: #c8d0e0;
+    font-family: 'David Libre', serif;
+    font-size: 0.82em;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+  }
+  .header-btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .main-container { display: flex; flex: 1; overflow: hidden; }
   #map { flex: 1; min-height: 500px; z-index: 1; }
 
+  /* ============ SIDEBAR ============ */
   .sidebar {
     width: 460px;
     background: #1e1e2e;
     overflow-y: auto;
     border-right: 2px solid #333;
     scrollbar-width: thin;
-    scrollbar-color: #c9a84c44 #1e1e2e;
+    scrollbar-color: #4a4a5e #1e1e2e;
+    display: flex;
+    flex-direction: column;
   }
   .sidebar::-webkit-scrollbar { width: 6px; }
   .sidebar::-webkit-scrollbar-track { background: #1e1e2e; }
-  .sidebar::-webkit-scrollbar-thumb { background: #c9a84c55; border-radius: 3px; }
-  .sidebar::-webkit-scrollbar-thumb:hover { background: #c9a84c99; }
+  .sidebar::-webkit-scrollbar-thumb { background: #4a4a5e; border-radius: 3px; }
+  .sidebar::-webkit-scrollbar-thumb:hover { background: #5a5a6e; }
+
+  /* ============ TABS ============ */
+  .tabs-nav {
+    display: flex;
+    background: #13132a;
+    border-bottom: 2px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 6px;
+    border: none;
+    background: transparent;
+    color: #777;
+    font-family: 'David Libre', serif;
+    font-size: 0.92em;
+    cursor: pointer;
+    transition: all 0.25s;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tab-btn:hover { color: #b8b0a0; background: rgba(180,170,150,0.04); }
+  .tab-btn.active { color: #d4c5a0; border-bottom-color: #8a8070; background: rgba(180,170,150,0.06); font-weight: 700; }
+
+  .tab-content { display: none; flex: 1; overflow-y: auto; }
+  .tab-content.active { display: block; }
+
+  /* ============ SIDEBAR HEADER (JOURNEY TAB) ============ */
   .sidebar-header {
     padding: 18px 22px;
     background: #252540;
     border-bottom: 1px solid #333;
-    position: sticky;
-    top: 0;
-    z-index: 10;
   }
-  .sidebar-header h3 { color: #c9a84c; font-size: 1.25em; margin-bottom: 12px; }
+  .sidebar-header h3 { color: #b8b0a0; font-size: 1.1em; font-weight: 500; margin-bottom: 12px; letter-spacing: 0.3px; }
 
   .period-filters { display: flex; flex-wrap: wrap; gap: 7px; }
   .period-btn {
@@ -65,82 +123,235 @@
     font-size: 0.95em;
     transition: all 0.3s;
   }
-  .period-btn:hover { border-color: #c9a84c; color: #c9a84c; }
-  .period-btn.active { background: #c9a84c; color: #1a1a2e; border-color: #c9a84c; font-weight: 700; }
+  .period-btn:hover { border-color: #777; color: #ccc; }
+  .period-btn.active { background: #555; color: #e8e0d0; border-color: #555; font-weight: 700; }
 
   .timeline { padding: 10px 18px 30px; }
 
-  .event-card {
-    background: #252540;
+  /* Progress bar */
+  .journey-progress {
+    height: 3px;
+    background: #2a2a3e;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .journey-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5a5a6e, #8a4040);
+    transition: width 0.6s ease;
+    width: 0%;
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* Period dividers */
+  .period-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 8px;
+    padding: 0 4px;
+  }
+  .period-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3a3a4e, transparent);
+  }
+  .period-divider-label {
+    font-size: 0.72em;
+    font-weight: 500;
+    color: #6a6a7e;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  /* Card nav buttons */
+  .card-nav {
+    display: none;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+  }
+  .event-card.active .card-nav { display: flex; }
+  .card-nav-btn {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid #3a3a4e;
+    border-radius: 6px;
+    color: #777;
+    font-family: 'David Libre', serif;
+    font-size: 0.8em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .card-nav-btn:hover { background: rgba(255,255,255,0.04); border-color: #555; color: #aaa; }
+  .card-nav-btn:disabled { opacity: 0.2; cursor: default; }
+  .card-nav-counter {
+    font-size: 0.78em;
+    color: #555;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Read indicator */
+  .event-card.read::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    font-size: 0.7em;
+    color: #4a6;
+    opacity: 0.6;
+  }
+  .event-card { position: relative; }
+
+  /* Welcome overlay */
+  .welcome-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10,10,20,0.92);
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+  }
+  .welcome-overlay.fade-out { opacity: 0; pointer-events: none; }
+  .welcome-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid #4a4a5e;
+    border-radius: 16px;
+    padding: 40px 48px;
+    text-align: center;
+    max-width: 520px;
+    direction: rtl;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .welcome-box h2 {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 2em;
+    color: #d4c5a0;
+    margin-bottom: 12px;
+  }
+  .welcome-box p {
+    font-size: 1em;
+    color: #9aabbc;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .welcome-box .welcome-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 28px;
+  }
+  .welcome-box .ws-item {
+    text-align: center;
+  }
+  .welcome-box .ws-num {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 2.2em;
+    font-weight: 900;
+    color: #d4c5a0;
+    display: block;
+    line-height: 1;
+  }
+  .welcome-box .ws-label {
+    font-size: 0.75em;
+    color: #7a8296;
+    margin-top: 4px;
+    display: block;
+  }
+  .welcome-btn {
+    display: inline-block;
+    padding: 14px 40px;
+    background: #d4c5a0;
+    color: #1a1a2e;
+    border: none;
     border-radius: 10px;
-    padding: 16px 18px;
-    margin: 10px 0;
-    border-right: 5px solid #c9a84c;
+    font-family: 'David Libre', serif;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .welcome-btn:hover { background: #e0d4b5; transform: scale(1.02); }
+
+  .event-card {
+    background: #22223a;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 8px 0;
+    border-right: 3px solid #3a3a50;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
   }
-  .event-card:hover { background: #2d2d4a; transform: translateX(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-  .event-card.active { background: #2d2d4a; border-right-color: #e74c3c; box-shadow: 0 4px 20px rgba(231,76,60,0.2); }
+  .event-card:hover { background: #2a2a44; transform: translateX(-2px); box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+  .event-card.active { background: #2a2a44; border-right-color: #8a4040; box-shadow: 0 2px 15px rgba(100,40,40,0.15); }
 
   .event-card .step-num {
     display: inline-block; width: 28px; height: 28px; border-radius: 50%;
     text-align: center; line-height: 28px; font-size: 0.9em; font-weight: 700;
     color: #fff; margin-left: 8px; vertical-align: middle;
   }
-  .event-card .date { font-size: 0.88em; color: #c9a84c; font-weight: 700; margin-bottom: 4px; }
-  .event-card .location-name { font-size: 1.15em; font-weight: 700; color: #e8e0d0; margin-bottom: 6px; }
-  .event-card .description { font-size: 0.95em; color: #9a9ab0; line-height: 1.6; }
+  .event-card .date { font-size: 0.82em; color: #7a7a8e; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.2px; }
+  .event-card .location-name { font-size: 1.2em; font-weight: 700; color: #e0dcd4; margin-bottom: 8px; }
+  .event-card .description { font-size: 0.92em; color: #8a8aa0; line-height: 1.7; }
   .event-card .event-type {
-    display: inline-block; padding: 3px 12px; border-radius: 12px;
-    font-size: 0.82em; font-weight: 700; margin-top: 7px;
+    display: inline-block; padding: 2px 10px; border-radius: 10px;
+    font-size: 0.75em; font-weight: 600; margin-top: 8px;
   }
 
-  /* --- שיפור 3: ציטוטים בסיידבר --- */
   .card-quote {
-    margin-top: 12px;
-    padding: 10px 14px;
-    background: rgba(201,168,76,0.08);
-    border-right: 3px solid #c9a84c;
-    border-radius: 0 6px 6px 0;
+    margin-top: 14px;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.02);
+    border-right: 2px solid #4a4a5e;
+    border-radius: 0 4px 4px 0;
     font-style: italic;
-    font-size: 0.9em;
-    color: #c9b870;
-    line-height: 1.55;
+    font-size: 0.88em;
+    color: #9a9aaa;
+    line-height: 1.6;
     position: relative;
   }
   .card-quote::before {
     content: '"';
-    font-size: 2em;
-    color: #c9a84c55;
+    font-size: 1.8em;
+    color: #4a4a5e;
     position: absolute;
-    top: -4px;
+    top: -2px;
     right: 10px;
     line-height: 1;
     font-style: normal;
   }
 
-  .type-massacre { background: #e74c3c22; color: #e74c3c; border: 1px solid #e74c3c44; }
-  .type-ghetto { background: #e67e2222; color: #e67e22; border: 1px solid #e67e2244; }
-  .type-escape { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7144; }
-  .type-hiding { background: #3498db22; color: #3498db; border: 1px solid #3498db44; }
-  .type-partisan { background: #9b59b622; color: #9b59b6; border: 1px solid #9b59b644; }
-  .type-camp { background: #95a5a622; color: #95a5a6; border: 1px solid #95a5a644; }
+  .type-massacre { background: rgba(180,70,60,0.1); color: #b07070; border: 1px solid rgba(180,70,60,0.2); }
+  .type-ghetto { background: rgba(180,120,60,0.1); color: #a08060; border: 1px solid rgba(180,120,60,0.2); }
+  .type-escape { background: rgba(70,160,100,0.1); color: #70a080; border: 1px solid rgba(70,160,100,0.2); }
+  .type-hiding { background: rgba(70,120,170,0.1); color: #7090b0; border: 1px solid rgba(70,120,170,0.2); }
+  .type-partisan { background: rgba(130,80,160,0.1); color: #9080a0; border: 1px solid rgba(130,80,160,0.2); }
+  .type-camp { background: rgba(130,140,150,0.1); color: #8a9098; border: 1px solid rgba(130,140,150,0.2); }
 
-  .leaflet-popup-content-wrapper { background: #1e1e2e !important; color: #e8e0d0 !important; border-radius: 10px !important; border: 1px solid #c9a84c !important; direction: rtl; }
+  /* ============ POPUP ============ */
+  .leaflet-popup-content-wrapper { background: #1e1e2e !important; color: #e8e0d0 !important; border-radius: 10px !important; border: 1px solid #4a4a5e !important; direction: rtl; }
   .leaflet-popup-tip { background: #1e1e2e !important; }
   .leaflet-popup-content { font-family: 'David Libre', serif !important; font-size: 16px !important; line-height: 1.6 !important; min-width: 220px; }
-  .popup-title { font-size: 1.2em; font-weight: 700; color: #c9a84c; margin-bottom: 4px; }
+  .popup-title { font-size: 1.2em; font-weight: 700; color: #d4c5a0; margin-bottom: 4px; }
   .popup-date { font-size: 0.88em; color: #7a8296; margin-bottom: 6px; }
   .popup-text { color: #b0b0c8; font-size: 1em; }
-  .popup-quote { border-right: 3px solid #c9a84c; padding-right: 10px; margin: 8px 0 0; font-style: italic; color: #a0a0b8; font-size: 0.92em; }
+  .popup-quote { border-right: 2px solid #4a4a5e; padding-right: 10px; margin: 8px 0 0; font-style: italic; color: #8a8a9e; font-size: 0.92em; }
 
-  /* --- שיפור 5: שורת סטטיסטיקות --- */
+  /* ============ STATS BAR ============ */
   .stats-bar {
     display: flex;
     justify-content: center;
     gap: 0;
     background: #13132a;
-    border-bottom: 2px solid #c9a84c33;
+    border-bottom: 1px solid #2a2a3e;
   }
   .stat-item {
     flex: 1;
@@ -154,7 +365,7 @@
     font-family: 'Frank Ruhl Libre', serif;
     font-size: 1.7em;
     font-weight: 900;
-    color: #c9a84c;
+    color: #b8b0a0;
     line-height: 1;
     display: block;
   }
@@ -166,59 +377,569 @@
     white-space: nowrap;
   }
 
+  /* ============ FEATURE 1: FAMILY TAB ============ */
+  .family-tab-inner { padding: 16px 18px 30px; }
+  .family-tab-title {
+    color: #b8b0a0;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2a2a3e;
+  }
+  .family-tab-subtitle {
+    font-size: 0.85em;
+    color: #7a8296;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .family-card {
+    background: #252540;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 12px 0;
+    border-right: 5px solid #8b0000;
+    transition: all 0.3s;
+  }
+  .family-card:hover { background: #2d2d4a; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+  .family-card-name {
+    font-size: 1.15em;
+    font-weight: 700;
+    color: #e8e0d0;
+    margin-bottom: 3px;
+  }
+  .family-card-relation {
+    font-size: 0.85em;
+    color: #8a8a9a;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .family-card-dates {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .family-date-badge {
+    background: rgba(139,0,0,0.2);
+    border: 1px solid rgba(139,0,0,0.4);
+    color: #e88080;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 0.82em;
+    font-weight: 700;
+  }
+  .family-location-badge {
+    background: rgba(100,100,100,0.2);
+    border: 1px solid rgba(100,100,100,0.3);
+    color: #aaa;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 0.82em;
+  }
+  .family-card-story {
+    font-size: 0.9em;
+    color: #9a9ab0;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .family-card-quote {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-right: 2px solid #5a2020;
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+    font-size: 0.88em;
+    color: #9a9aaa;
+    line-height: 1.5;
+  }
+  .family-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .btn-cal {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'David Libre', serif;
+    font-size: 0.82em;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-gcal {
+    background: rgba(66,133,244,0.15);
+    color: #6fa3ef;
+    border: 1px solid rgba(66,133,244,0.3);
+  }
+  .btn-gcal:hover { background: rgba(66,133,244,0.25); color: #90b8f8; }
+  .btn-ics {
+    background: rgba(180,170,150,0.08);
+    color: #8a8a9a;
+    border: 1px solid rgba(180,170,150,0.2);
+  }
+  .btn-ics:hover { background: rgba(180,170,150,0.15); color: #aaa; }
+
+  /* Yahrzeit header section */
+  .yahrzeit-header {
+    background: linear-gradient(135deg, #1a0a0a, #2a1010);
+    border: 1px solid #5a1010;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  .yahrzeit-header h4 { color: #e88080; font-size: 1em; margin-bottom: 8px; }
+  .yahrzeit-header p { font-size: 0.82em; color: #9a7070; line-height: 1.5; margin-bottom: 12px; }
+
+  .btn-download-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-family: 'David Libre', serif;
+    font-size: 0.9em;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid rgba(180,170,150,0.3);
+    background: rgba(180,170,150,0.1);
+    color: #8a8a9a;
+    transition: all 0.2s;
+    margin: 4px auto;
+    display: block;
+    width: fit-content;
+  }
+  .btn-download-all:hover { background: rgba(180,170,150,0.18); color: #aaa; }
+
+  /* Formspree section */
+  .reminder-section {
+    background: #1a1a2e;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-top: 20px;
+  }
+  .reminder-section h4 { color: #b8b0a0; font-size: 0.95em; margin-bottom: 6px; }
+  .reminder-section p { font-size: 0.8em; color: #7a8296; margin-bottom: 12px; line-height: 1.5; }
+  .reminder-form { display: flex; gap: 8px; flex-wrap: wrap; }
+  .reminder-form input[type="email"] {
+    flex: 1;
+    min-width: 160px;
+    padding: 8px 12px;
+    background: #2a2a3e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #e8e0d0;
+    font-family: 'David Libre', serif;
+    font-size: 0.88em;
+    direction: ltr;
+  }
+  .reminder-form input[type="email"]:focus { outline: none; border-color: #6a6a7e; }
+  .reminder-form button[type="submit"] {
+    padding: 8px 16px;
+    background: rgba(180,170,150,0.1);
+    color: #8a8a9a;
+    border: 1px solid rgba(180,170,150,0.25);
+    border-radius: 8px;
+    font-family: 'David Libre', serif;
+    font-size: 0.88em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reminder-form button[type="submit"]:hover { background: rgba(180,170,150,0.18); }
+  .form-msg { font-size: 0.8em; color: #2ecc71; margin-top: 6px; display: none; }
+
+  /* ============ FEATURE 3: PHOTOS TAB ============ */
+  .photos-tab-inner { padding: 16px 18px 30px; }
+  .photos-tab-title {
+    color: #b8b0a0;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2a2a3e;
+  }
+  .photos-tab-subtitle {
+    font-size: 0.82em;
+    color: #7a8296;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .photos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .photo-thumb {
+    background: #252540;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 1px solid #333;
+  }
+  .photo-thumb:hover { border-color: #5a5a6e; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: scale(1.02); }
+  .photo-thumb img {
+    width: 100%;
+    height: 160px;
+    object-fit: contain;
+    background: #13132a;
+    display: block;
+    background: #1a1a2e;
+  }
+  .photo-thumb .photo-error {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a2e;
+    color: #555;
+    font-size: 0.75em;
+    text-align: center;
+    padding: 8px;
+    gap: 4px;
+  }
+  .photo-thumb .photo-error span { color: #777; }
+  .photo-thumb-caption {
+    padding: 8px 10px;
+  }
+  .photo-thumb-city { font-size: 0.82em; font-weight: 700; color: #b8b0a0; margin-bottom: 2px; }
+  .photo-thumb-year { font-size: 0.75em; color: #7a8296; }
+
+  /* LIGHTBOX */
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+  }
+  .lightbox-overlay.open { display: flex; }
+  .lightbox-inner {
+    background: #1e1e2e;
+    border: 1px solid #3a3a50;
+    border-radius: 12px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 24px;
+    direction: rtl;
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #888;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-family: Arial, sans-serif;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,0.1); }
+  .lightbox-img-container {
+    width: 100%;
+    margin-bottom: 16px;
+    background: #13132a;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-img-container img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+  }
+  .lightbox-img-container .lb-error {
+    padding: 30px;
+    text-align: center;
+    color: #555;
+    font-size: 0.9em;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  .lightbox-img-container .lb-error a { color: #8a9ab0; font-size: 0.88em; }
+  .lightbox-city { font-size: 1.2em; font-weight: 700; color: #d4c5a0; margin-bottom: 4px; }
+  .lightbox-year { font-size: 0.88em; color: #7a8296; margin-bottom: 8px; }
+  .lightbox-desc { font-size: 0.95em; color: #9a9ab0; line-height: 1.6; margin-bottom: 10px; }
+  .lightbox-source { font-size: 0.8em; color: #555; }
+  .lightbox-source a { color: #8a9ab0; }
+  .lightbox-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #333;
+  }
+  .lb-nav-btn {
+    padding: 8px 18px;
+    background: transparent;
+    color: #777;
+    border: 1px solid #3a3a4e;
+    border-radius: 6px;
+    font-family: 'David Libre', serif;
+    font-size: 0.88em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lb-nav-btn:hover { background: rgba(255,255,255,0.04); border-color: #555; color: #aaa; }
+  .lb-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .lb-counter { font-size: 0.85em; color: #555; }
+
+
+  /* ============ PDF FLOATING BUTTON ============ */
+  #pdf-download-btn {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid #4a4a5e;
+    border-radius: 30px;
+    color: #8a8a9a;
+    font-family: 'David Libre', serif;
+    font-size: 0.92em;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: all 0.25s;
+    direction: rtl;
+  }
+  #pdf-download-btn:hover {
+    background: linear-gradient(135deg, #252545 0%, #1e2e50 100%);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+    transform: translateY(-2px);
+    color: #b8b0a0;
+    border-color: #6a6a7e;
+  }
+  #pdf-download-btn .pdf-icon { font-size: 1.1em; }
+
+  /* ============ CONTEXT LINKS ============ */
+  .context-section {
+    margin-top: 12px;
+    border-top: 1px solid #2a2a3e;
+    padding-top: 10px;
+  }
+  .context-toggle {
+    background: none; border: none; cursor: pointer;
+    color: #7a8296; font-family: 'David Libre', serif;
+    font-size: 0.85em; padding: 0; display: flex;
+    align-items: center; gap: 5px; direction: rtl;
+    transition: color 0.2s;
+  }
+  .context-toggle:hover { color: #aaa; }
+  .context-toggle .arrow { font-size: 0.7em; transition: transform 0.2s; }
+  .context-toggle.open .arrow { transform: rotate(-90deg); }
+  .context-links {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .context-links.open { display: flex; }
+  .context-link-item {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .context-link-item a {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #6ab0d4; font-size: 0.87em; text-decoration: none;
+    padding: 5px 10px; border-radius: 6px;
+    background: rgba(106,176,212,0.08);
+    border: 1px solid rgba(106,176,212,0.2);
+    transition: all 0.2s; direction: rtl;
+  }
+  .context-link-item a:hover {
+    background: rgba(106,176,212,0.18);
+    border-color: rgba(106,176,212,0.4);
+    color: #8dd0f0;
+  }
+  .context-note {
+    font-size: 0.78em; color: #666; padding-right: 22px;
+    line-height: 1.4;
+  }
+
+  /* ============ RESPONSIVE ============ */
   @media (max-width: 900px) {
     .main-container { flex-direction: column-reverse; }
-    .sidebar { width: 100%; height: 40vh; }
-    #map { height: 60vh; }
+    .sidebar { width: 100%; height: 50vh; }
+    #map { height: 50vh; }
     .stats-bar { flex-wrap: wrap; }
     .stat-item { min-width: 80px; }
+    .photos-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .photos-grid { grid-template-columns: 1fr; }
+    .family-card-actions { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>משא איש</h1>
-  <h2>מפת המסע של ר' גוטל גבריאל גרצובסקי בימי השואה</h2>
-  <div class="subtitle">יוני 1941 - אביב 1943 | מערב בלארוס - מחוז נובוגרודק (וויבלאסט גרודנו)</div>
+  <div style="display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;text-align:center;">
+      <h1>משא איש</h1>
+      <h2>מפת מסעו של ר' גוטל גבריאל גרצובסקי בימי השואה</h2>
+      <div class="subtitle">יוני 1941 - אביב 1943 | מערב בלארוס - מחוז נובוגרודק (וויבלאסט גרודנו)</div>
+    </div>
+    <div class="header-actions">
+      <a href="סבא גבריאל.pdf" download class="header-btn" title="הורד את יומנו האישי של סבא גבריאל בפורמט PDF">⬇ יומן סבא גבריאל (PDF)</a>
+      <a href="https://youtu.be/iYiu9ZgcnWY" target="_blank" class="header-btn" title="צפה בסרטון זום המשפחתי ביוטיוב">🎥 זום משפחתי ביוטיוב</a>
+    </div>
+  </div>
 </div>
 
 <div class="stats-bar">
   <div class="stat-item"><span class="stat-num">13</span><span class="stat-label">תחנות במסע</span></div>
-  <div class="stat-item"><span class="stat-num">~21</span><span class="stat-label">חודשי הישרדות</span></div>
+  <div class="stat-item"><span class="stat-num" dir="ltr">כ-21</span><span class="stat-label">חודשי הישרדות</span></div>
   <div class="stat-item"><span class="stat-num">3</span><span class="stat-label">בריחות</span></div>
 </div>
 
+<!-- WELCOME OVERLAY -->
+<div class="welcome-overlay" id="welcome-overlay">
+  <div class="welcome-box">
+    <h2>🕯 משא איש</h2>
+    <p>מפה אינטראקטיבית של מסעו של ר' גוטל גבריאל גרצובסקי בימי השואה.<br>המפה מבוססת על יומנו האישי ומתעדת 13 תחנות בין יוני 1941 לאביב 1943.</p>
+    <div class="welcome-stats">
+      <div class="ws-item"><span class="ws-num">13</span><span class="ws-label">תחנות במסע</span></div>
+      <div class="ws-item"><span class="ws-num">6</span><span class="ws-label">בני משפחה שנספו</span></div>
+      <div class="ws-item"><span class="ws-num">~21</span><span class="ws-label">חודשי הישרדות</span></div>
+    </div>
+    <button class="welcome-btn" onclick="startJourney()">התחל את המסע</button>
+  </div>
+</div>
+
+
 <div class="main-container">
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-header">
-      <h3>תחנות המסע</h3>
-      <div class="period-filters">
-        <button class="period-btn active" data-period="all">הכל</button>
-        <button class="period-btn" data-period="1">גטו זטיל 1941-42</button>
-        <button class="period-btn" data-period="2">טבח ובריחה 1942</button>
-        <button class="period-btn" data-period="3">מחנה ונדודים 1942-43</button>
-        <button class="period-btn" data-period="4">פרטיזנים 1943</button>
+
+    <!-- TABS NAV -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" data-tab="journey">🗺 מסע <span style="font-size:0.75em;opacity:0.6;margin-right:3px;">(13)</span></button>
+      <button class="tab-btn" data-tab="family">🕯 משפחה <span style="font-size:0.75em;opacity:0.6;margin-right:3px;">(6)</span></button>
+      <button class="tab-btn" data-tab="photos">📷 תמונות <span style="font-size:0.75em;opacity:0.6;margin-right:3px;">(9)</span></button>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="journey-progress" id="journey-progress"><div class="journey-progress-fill" id="journey-progress-fill"></div></div>
+
+    <!-- TAB 1: JOURNEY -->
+    <div class="tab-content active" id="tab-journey">
+      <div class="sidebar-header">
+        <h3>תחנות המסע</h3>
+        <div class="period-filters">
+          <button class="period-btn active" data-period="all">הכל</button>
+          <button class="period-btn" data-period="1">גטו זטיל 1941-42</button>
+          <button class="period-btn" data-period="2">טבח ובריחה 1942</button>
+          <button class="period-btn" data-period="3">מחנה ונדודים 1942-43</button>
+          <button class="period-btn" data-period="4">פרטיזנים 1943</button>
+        </div>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- TAB 2: FAMILY -->
+    <div class="tab-content" id="tab-family">
+      <div class="family-tab-inner">
+        <div class="family-tab-title">בני המשפחה שנספו</div>
+        <div class="family-tab-subtitle">
+          בני משפחתו של גבריאל גרצובסקי שנרצחו בשואה. לחצו על כפתורי הייארצייט להוספה ליומן.
+        </div>
+
+        <div class="yahrzeit-header">
+          <h4>🕯 הורד את כל הייארצייטים</h4>
+          <p>קובץ ICS אחד עם כל הייארצייטים ל-50 שנה - התאריכים מחושבים לפי הלוח העברי (Hebcal)</p>
+          <button class="btn-download-all" onclick="downloadAllICS()">⬇ הורד את כל הייארצייטים (ICS)</button>
+        </div>
+
+        <div id="family-cards-container"></div>
+
+        <!-- FORMSPREE SUBSCRIPTION -->
+        <div class="reminder-section">
+          <h4>📧 קבל תזכורת בדוא"ל</h4>
+          <p>הרשם לתזכורת שנתית אוטומטית לפני כל ייארצייט</p>
+          <form class="reminder-form" onsubmit="submitReminderForm(event)">
+            <input type="email" placeholder="כתובת דוא&quot;ל" required id="reminder-email" />
+            <button type="submit">שמור</button>
+          </form>
+          <div class="form-msg" id="form-success-msg">✓ נרשמת בהצלחה! תקבל תזכורות לפני כל ייארצייט.</div>
+        </div>
       </div>
     </div>
-    <div class="timeline" id="timeline"></div>
-  </div>
+
+    <!-- TAB 3: PHOTOS -->
+    <div class="tab-content" id="tab-photos">
+      <div class="photos-tab-inner">
+        <div class="photos-tab-title">תמונות היסטוריות</div>
+        <div class="photos-tab-subtitle">
+          תצלומים מהתקופה - העיירות, הגטאות והפרטיזנים ביערות בלארוס לפני ובמהלך מלחמת העולם השנייה.
+        </div>
+        <div class="photos-grid" id="photos-grid"></div>
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+
   <div id="map"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <div class="lightbox-img-container" id="lb-img-container"></div>
+    <div class="lightbox-city" id="lb-city"></div>
+    <div class="lightbox-year" id="lb-year"></div>
+    <div class="lightbox-desc" id="lb-desc"></div>
+    <div class="lightbox-source" id="lb-source"></div>
+    <div class="lightbox-nav">
+      <button class="lb-nav-btn" id="lb-prev" onclick="lightboxNav(-1)">→ הקודם</button>
+      <span class="lb-counter" id="lb-counter"></span>
+      <button class="lb-nav-btn" id="lb-next" onclick="lightboxNav(1)">הבא ←</button>
+    </div>
+  </div>
 </div>
 
 <script>
 // =====================================================
-// VERIFIED COORDINATES - researched against real sources
+// VERIFIED COORDINATES
 // =====================================================
-// זטיל (Zdzięcioł) = Dyatlovo (Дзятлава): 53.4614°N, 25.4072°E  [CONFIRMED]
-// נובוגרודק (Nowogródek) = Novogrudok (Навагрудак): 53.5942°N, 25.8194°E  [CONFIRMED]
-// דבורץ (Dworzec) = Dvorets (Дворец, Dyatlovo district): 53.4069°N, 25.5706°E  [CONFIRMED - 13km SE of Dyatlovo]
-// סלונים (Słonim) = Slonim: 53.0875°N, 25.3167°E  [CONFIRMED]
-// באראנוביץ' (Baranowicze) = Baranovichi: 53.1328°N, 26.0139°E  [CONFIRMED]
-// יער קורפיאש (Kurpiasz) = south of Dyatlovo, first massacre site: ~53.445°N, 25.405°E  [ESTIMATED]
-// קונה (Kuna) = gathering point near Zhetl: ~53.455°N, 25.400°E  [ESTIMATED - walkable from town center]
-// יער ליפיצ'אנסקי (Lipichanskaya Pushcha) = SW of Dyatlovo, Mosty district: ~53.40°N, 25.15°E  [ESTIMATED]
-
 const events = [
   {
     id: 1, period: 1,
@@ -228,7 +949,12 @@ const events = [
     lat: 53.4614, lng: 25.4072,
     type: "ghetto", typeLabel: "כיבוש וגטו",
     description: "הגרמנים כובשים את העיירה. פקודות ראשונות: טלאי צהוב, איסור הליכה על המדרכה - עונש מוות. כ-3,000 יהודים נדחסים לגטו בשלושה רחובות. גבריאל עם 15 נפשות בחדר אחד: הוא, אשתו סוניה, שלושת ילדיו דינה, הרצל ואריה, אחיו ומשפחתו, אביו שלמה, חמותו ואחות אשתו.",
-    quote: "עיירה של שלושת אלפים יהודים ודחסו אותם בשלושה רחובות קטנים"
+    quote: "עיירה של שלושת אלפים יהודים ודחסו אותם בשלושה רחובות קטנים",
+    context: [
+      { icon: '📚', label: 'גטו ז\'טל - ויקיפדיה', url: 'https://he.wikipedia.org/wiki/%D7%92%D7%98%D7%95_%D7%96%27%D7%98%D7%9C', note: 'מידע מקיף על גטו ז\'טל, הטבחים והמרד' },
+      { icon: '🔗', label: 'קהילת ז\'טל - אנציקלופדיית USHMM', url: 'https://encyclopedia.ushmm.org/content/en/article/zdzieciol-zhetel' },
+      { icon: '⚔️', label: 'המחתרת בגטו ז\'טל - USHMM', url: 'https://encyclopedia.ushmm.org/content/en/article/the-underground-in-the-zhetel-ghetto' }
+    ]
   },
   {
     id: 2, period: 1,
@@ -248,7 +974,11 @@ const events = [
     lat: 53.4480, lng: 25.4050,
     type: "massacre", typeLabel: "טבח - אקציה ראשונה",
     description: "כל יהודי הגטו גורשו לבית הקברות הישן ליד בית הכנסת. מיון: בעלי תעודות עבודה הופרדו. גבריאל ניצל עם אביו שלמה, אשתו סוניה וילדיו. אחיו ומשפחתו הובלו ליער קורפיאש ונורו בקבוצות של 20. אחיינו מאירקע (בן 13, בנו של אחיו) ברח מהקברים.",
-    quote: "דוד, אני כבר נותרתי יתום. כבר ירו בהם. אני התחבאתי כשהובילו אותנו אל הקברים"
+    quote: "דוד, אני כבר נותרתי יתום. כבר ירו בהם. אני התחבאתי כשהובילו אותנו אל הקברים",
+    context: [
+      { icon: '📚', label: 'גטו ז\'טל - ויקיפדיה', url: 'https://he.wikipedia.org/wiki/%D7%92%D7%98%D7%95_%D7%96%27%D7%98%D7%9C', note: 'הטבח הראשון, 30 באפריל 1942 - 1,200 נרצחים' },
+      { icon: '⚔️', label: 'המחתרת בגטו ז\'טל - USHMM', url: 'https://encyclopedia.ushmm.org/content/en/article/the-underground-in-the-zhetel-ghetto' }
+    ]
   },
   {
     id: 4, period: 2,
@@ -288,7 +1018,11 @@ const events = [
     lat: 53.5942, lng: 25.8194,
     type: "camp", typeLabel: "מחנה ריכוז",
     description: "150 הגברים מזטיל מובלים במשאיות כ-40 ק״מ צפון-מזרח למחנה ריכוז בנובוגרודק. 30 גרם לחם ומים ביום. הקומיסר מכה באלות עד שנשברות. חצי מהאסירים נרצחים בעבודה ובטבח. גבריאל שומע שבדבורץ, 12 ק״מ מזטיל, יהודים עדיין חיים.",
-    quote: "כל יום נהג לבוא הקומיסר עם מוט גדול... ולהרביץ עד שהמוט נשבר על גבינו"
+    quote: "כל יום נהג לבוא הקומיסר עם מוט גדול... ולהרביץ עד שהמוט נשבר על גבינו",
+    context: [
+      { icon: '📚', label: 'גטו נובוגרודק - ויקיפדיה', url: 'https://he.wikipedia.org/wiki/%D7%92%D7%98%D7%95_%D7%A0%D7%95%D7%91%D7%95%D7%92%D7%A8%D7%95%D7%93%D7%A7', note: 'כולל את סיפור מנהרת הבריחה - 232 אסירים חפרו מנהרה של 250 מטר וברחו' },
+      { icon: '🔗', label: 'העיר נובוגרודק (נבהרדק) - ויקיפדיה', url: 'https://he.wikipedia.org/wiki/%D7%A0%D7%91%D7%94%D7%A8%D7%93%D7%A7' }
+    ]
   },
   {
     id: 8, period: 3,
@@ -348,18 +1082,211 @@ const events = [
     lat: 53.4000, lng: 25.1500,
     type: "partisan", typeLabel: "פרטיזנים",
     description: "לאחר כחודש אצל האיכר, מגיעים פרטיזנים יהודיים - ה'פלוגה הז'טלית' (Zhetel Detachment) שפעלה ביער ליפיצ'אנסקי. משלמים לאיכר, מושיבים את גבריאל ואת בנו אריה בעגלה ולוקחים ליער. גבריאל ואריה הופכים לפרטיזנים. כאן נגמר החלק הראשון של היומן.",
-    quote: "הפרטיזנים היהודיים שילמו היטב לנוצרי והושיבו אותנו בעגלה והסיעו אותנו אל היער, ונהיינו פרטיזנים"
+    quote: "הפרטיזנים היהודיים שילמו היטב לנוצרי והושיבו אותנו בעגלה והסיעו אותנו אל היער, ונהיינו פרטיזנים",
+    context: [
+      { icon: '⚔️', label: 'יחידת הפרטיזנים של בלסקי - ויקיפדיה', url: 'https://he.wikipedia.org/wiki/%D7%99%D7%97%D7%99%D7%93%D7%AA_%D7%94%D7%A4%D7%A8%D7%98%D7%99%D7%96%D7%A0%D7%99%D7%9D_%D7%A9%D7%9C_%D7%91%D7%9C%D7%A1%D7%A7%D7%99', note: 'פעלו באותם יערות ממש - הצילו למעלה מ-1,200 יהודים' },
+      { icon: '🎬', label: 'הסרט "התקוממות" (Defiance, 2008)', url: 'https://he.wikipedia.org/wiki/%D7%94%D7%AA%D7%A7%D7%95%D7%9E%D7%9E%D7%95%D7%AA_(%D7%A1%D7%A8%D7%98)', note: 'סרט בכיכובו של דניאל קרייג המבוסס על סיפור אחי בלסקי - אותם יערות, אותה תקופה' },
+      { icon: '📚', label: 'פרטיזנים יהודיים - ויקיפדיה', url: 'https://he.wikipedia.org/wiki/%D7%A4%D7%A8%D7%98%D7%99%D7%96%D7%A0%D7%99%D7%9D_%D7%99%D7%94%D7%95%D7%93%D7%99%D7%9D', note: 'על הפרטיזנים היהודיים ביערות בלארוס ואירופה' },
+      { icon: '🔗', label: 'גטו ז\'טל - מרד ובריחה ליערות', url: 'https://he.wikipedia.org/wiki/%D7%92%D7%98%D7%95_%D7%96%27%D7%98%D7%9C' }
+    ]
   }
 ];
 
-// Context cities mentioned in the diary (not visited, only referenced)
+// Context cities mentioned in the diary
 const contextCities = [
   { name: "סלונים (Slonim)", lat: 53.0875, lng: 25.3167, note: "הוזכרה ביומן: 'בסלונים התרחשה השחיטה האחרונה'" },
   { name: "באראנוביץ' (Baranovichi)", lat: 53.1328, lng: 26.0139, note: "הוזכרה ביומן: 'בבארוונוביץ' הייתה שחיטה גדולה, מצאו אצלהם נשק'" },
   { name: "סמולנסק (Smolensk)", lat: 54.7826, lng: 32.0453, note: "הוזכרה כהבטחת שווא: 'יסיעו אותנו לסמולנסק לעבודה'" }
 ];
 
-// ============ MAP SETUP ============
+// =====================================================
+// FEATURE 1: FAMILY MEMBERS DATA
+// =====================================================
+// Hebrew dates verified via Hebcal API (POST https://www.hebcal.com/yahrzeit)
+const familyMembers = [
+  {
+    id: 'shlomo',
+    name: 'שלמה גרצובסקי',
+    nameEn: 'Shlomo Gretzovsky',
+    relation: 'אב גבריאל',
+    age: 70,
+    hebrewDate: 'כ״ג באב תש״ב',
+    gregorianDate: '6 באוגוסט 1942',
+    deathDay: 6, deathMonth: 8, deathYear: 1942,
+    isoDate: '1942-08-06',
+    yahrzeitHebrew: 'כ״ג באב',
+    yahrzeitGregorian2026: '2026-08-06',
+    location: 'זטיל - האקציה השנייה',
+    story: 'בגיל 70 סירב להתחבא: "האל היקר יהיה אביך". נרצח בשחיטה השנייה של גטו זטיל.',
+    quote: 'להתראות ילדי. עליך להשאר בחיים ולנקום ברוצחים ששופכים את דמנו התמים'
+  },
+  {
+    id: 'sonya',
+    name: 'סוניה גרצובסקי',
+    nameEn: 'Sonya Gretzovsky',
+    relation: 'אשת גבריאל',
+    hebrewDate: 'כ״ה באב תש״ב',
+    gregorianDate: '8 באוגוסט 1942',
+    deathDay: 8, deathMonth: 8, deathYear: 1942,
+    isoDate: '1942-08-08',
+    yahrzeitHebrew: 'כ״ה באב',
+    yahrzeitGregorian2026: '2026-08-08',
+    location: 'קונה - ליד זטיל',
+    story: 'נפרדה מגבריאל בקונה. היא אמרה: "אולי עוד תהיה אבא לילדינו". הובלה לבית הכנסת ומשם למוות.',
+    quote: 'אני הולך איתך - לא, אולי עוד תהיה אבא לילדינו'
+  },
+  {
+    id: 'dina',
+    name: 'דינה גרצובסקי',
+    nameEn: 'Dina Gretzovsky',
+    relation: 'בת גבריאל - בת 18',
+    hebrewDate: 'כ״ג באב תש״ב',
+    gregorianDate: '6 באוגוסט 1942',
+    deathDay: 6, deathMonth: 8, deathYear: 1942,
+    isoDate: '1942-08-06',
+    yahrzeitHebrew: 'כ״ג באב',
+    yahrzeitGregorian2026: '2026-08-06',
+    location: 'שדות השיפון, דרום זטיל',
+    story: 'בת 18 בבריחה מהגטו. נורתה מייד כשיצאו מהמחבוא. נקברה בשדה השיפון.',
+    quote: 'ילדה יקרה שלי... את שוכבת לדאבוננו מתחת לכיפת השמיים על פני השדות'
+  },
+  {
+    id: 'hertzl',
+    name: 'הרצל גרצובסקי',
+    nameEn: 'Hertzl Gretzovsky',
+    relation: 'בן גבריאל - בן 19',
+    hebrewDate: 'כ״ז באלול תש״ב',
+    gregorianDate: '9 בספטמבר 1942',
+    deathDay: 9, deathMonth: 9, deathYear: 1942,
+    isoDate: '1942-09-09',
+    yahrzeitHebrew: 'כ״ז באלול',
+    yahrzeitGregorian2026: '2026-09-09',
+    location: 'יער קטן ליד דבורץ',
+    story: 'בן 19 שברח מהגטו ליער. נהרג ע"י איכר יחד עם המשטרה הגרמנית, שלושה ימים לפני ראש השנה תש"ג.',
+    quote: 'הנה פגשתי את בני היחידי... והבן השני, בני היקר והאהוב נפל לדאבון הלב'
+  },
+  {
+    id: 'meirke',
+    name: 'מאירקע',
+    nameEn: 'Meirke',
+    relation: 'אחיין גבריאל - בן אחיו - בן 13',
+    hebrewDate: 'כ״ד בטבת תש״ג (משוער)',
+    gregorianDate: 'חורף 1942-1943 (משוער: 1 בינואר 1943)',
+    deathDay: 1, deathMonth: 1, deathYear: 1943,
+    isoDate: '1943-01-01',
+    yahrzeitHebrew: 'כ״ד בטבת',
+    yahrzeitGregorian2026: '2026-01-13',
+    location: 'כפר בין דבורץ לזטיל',
+    story: 'בן 13 שניצל משתי אקציות בזטיל ומהטבח בדבורץ. נהרג כשאיכרים הלשינו לגרמנים ושרפו את הבית עם כולם.',
+    quote: 'דוד, אני כבר נותרתי יתום. כבר ירו בהם. אני התחבאתי כשהובילו אותנו אל הקברים'
+  },
+  {
+    id: 'brother',
+    name: 'אח גבריאל (שמו לא ידוע)',
+    nameEn: 'Brother of Gabriel',
+    relation: 'אח גבריאל ומשפחתו',
+    hebrewDate: 'י״ג באייר תש״ב',
+    gregorianDate: '30 באפריל 1942',
+    deathDay: 30, deathMonth: 4, deathYear: 1942,
+    isoDate: '1942-04-30',
+    yahrzeitHebrew: 'י״ג באייר',
+    yahrzeitGregorian2026: '2026-04-30',
+    location: 'יער קורפיאש, דרום זטיל',
+    story: 'נרצח עם כל משפחתו בטבח הראשון של גטו זטיל - 960 נרצחים ביחד. בנו מאירקע (13) ניצל מהקברים.',
+    quote: 'דוד, אני כבר נותרתי יתום. כבר ירו בהם'
+  }
+];
+
+// =====================================================
+// FEATURE 3: HISTORICAL PHOTOS DATA
+// =====================================================
+const historicPhotos = [
+  {
+    id: 'nowogrodek-1904',
+    city: 'נובוגרודק - עיר לפני השואה',
+    year: '1904',
+    description: 'נובוגרודק (Nowogródek) בשנת 1904 - צילום היסטורי נדיר של הרחובות לפני המלחמה. כאן עוברים יהודים בכל יום.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Arthur_levy056-Nowo_Grodek_1904.jpg/800px-Arthur_levy056-Nowo_Grodek_1904.jpg',
+    source: 'Wikimedia Commons - Arthur Levy, 1904',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:History_of_Navahradak'
+  },
+  {
+    id: 'nowogrodek-bridge',
+    city: 'נובוגרודק - תשתיות העיר',
+    year: 'מלחמת העולם הראשונה',
+    description: 'גשר נובוגרודק - צילום מתקופת מלחמת העולם הראשונה. הגרמנים כבשו את האזור כבר אז, לפני שחזרו ב-1941.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Br%C3%BCcke_von_Nowogradek._Milit%C3%A4r-Eisenbahn-Direktion_6_%28Brest-Litowsk%29_LR.jpg/800px-Br%C3%BCcke_von_Nowogradek._Milit%C3%A4r-Eisenbahn-Direktion_6_%28Brest-Litowsk%29_LR.jpg',
+    source: 'Wikimedia Commons - Militär-Eisenbahn-Direktion',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:History_of_Navahradak'
+  },
+  {
+    id: 'nowogrodek-workers',
+    city: 'נובוגרודק - פועלים יהודים',
+    year: 'מלחמת העולם הראשונה',
+    description: 'פועלים מנובוגרודק בתעסוקה כפויה - הדפוס חזר בדיוק ב-1941-1943 עם העבודה הכפויה בגטו.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Arbeitende_Guilkolonne_bei_Nowogrodek._Milit%C3%A4r-Eisenbahn-Direktion_6_%28Brest-Litowsk%29.jpg/800px-Arbeitende_Guilkolonne_bei_Nowogrodek._Milit%C3%A4r-Eisenbahn-Direktion_6_%28Brest-Litowsk%29.jpg',
+    source: 'Wikimedia Commons',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:History_of_Navahradak'
+  },
+  {
+    id: 'ghetto-novogrodek-1',
+    city: 'נובוגרודק - תחת הכיבוש',
+    year: '1941-1942',
+    description: 'רחוב מינסקאיה בגטו נובוגרודק תחת הכיבוש הגרמני - אותו מחנה שגבריאל הוכנס אליו באוגוסט 1942.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Ghetto_Novogrudok_-_str_Minskaya_1a.jpg/800px-Ghetto_Novogrudok_-_str_Minskaya_1a.jpg',
+    source: 'Wikimedia Commons - ארכיון גטו נובוגרודק',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:Ghetto_Navahrudak'
+  },
+  {
+    id: 'ghetto-novogrodek-2',
+    city: 'נובוגרודק - גטו',
+    year: '1941-1942',
+    description: 'רחובות גטו נובוגרודק - 150 הגברים מזטיל נלקחו למחנה זה. גבריאל קיבל כאן 30 גרם לחם ליום.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Ghetto_Novogrudok_-_str_Minskaya_2a.jpg/800px-Ghetto_Novogrudok_-_str_Minskaya_2a.jpg',
+    source: 'Wikimedia Commons - ארכיון גטו נובוגרודק',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:Ghetto_Navahrudak'
+  },
+  {
+    id: 'ghetto-novogrodek-5',
+    city: 'נובוגרודק - גטו',
+    year: '1941-1942',
+    description: 'גטו נובוגרודק - תמונה נוספת מהרחוב הראשי. 250 אסירים חפרו כאן מנהרת בריחה ב-1943.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Ghetto_Novogrudok_-_str_Minskaya_5a.jpg/800px-Ghetto_Novogrudok_-_str_Minskaya_5a.jpg',
+    source: 'Wikimedia Commons - ארכיון גטו נובוגרודק',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:Ghetto_Navahrudak'
+  },
+  {
+    id: 'dyatlovo-cemetery-1',
+    city: 'זטיל - בית הקברות היהודי',
+    year: 'תצלום עכשווי של אתר היסטורי',
+    description: 'בית הקברות היהודי בזטיל (דיאטלובו) - שרידי קהילה של 3,000 יהודים שחיו כאן. גבריאל ומשפחתו הוקפו כאן באקציה הראשונה.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Jewish_cemetery_in_Dyatlovo_1a.jpg/800px-Jewish_cemetery_in_Dyatlovo_1a.jpg',
+    source: 'Wikimedia Commons - בית קברות יהודי בדיאטלובו',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:Jewish_cemetery_in_Dyatlovo'
+  },
+  {
+    id: 'dyatlovo-cemetery-2',
+    city: 'זטיל - מצבות יהודיות',
+    year: 'תצלום עכשווי של אתר היסטורי',
+    description: 'מצבות בבית הקברות היהודי של זטיל - הזיכרון האחרון שנותר מהקהילה שנשמדה.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Jewish_cemetery_in_Dyatlovo_1b.jpg/800px-Jewish_cemetery_in_Dyatlovo_1b.jpg',
+    source: 'Wikimedia Commons - בית קברות יהודי בדיאטלובו',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:Jewish_cemetery_in_Dyatlovo'
+  },
+  {
+    id: 'dyatlovo-cemetery-3',
+    city: 'זטיל - בית עלמין',
+    year: 'תצלום עכשווי של אתר היסטורי',
+    description: 'שרידי בית הקברות היהודי בזטיל - המקום שממנו הוצאו יהודי הגטו לאקציה הראשונה בשנת 1942.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Jewish_cemetery_in_Dyatlovo_2a.jpg/800px-Jewish_cemetery_in_Dyatlovo_2a.jpg',
+    source: 'Wikimedia Commons - בית קברות יהודי בדיאטלובו',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/Category:Jewish_cemetery_in_Dyatlovo'
+  }
+];
+
+// =====================================================
+// MAP SETUP
+// =====================================================
 const map = L.map('map', {
   center: [53.46, 25.50],
   zoom: 10,
@@ -367,7 +1294,6 @@ const map = L.map('map', {
 });
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-// Esri tiles (work from local files, English labels)
 const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
   attribution: '&copy; Esri, HERE, Garmin', maxZoom: 18
 });
@@ -380,16 +1306,24 @@ const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/service
 const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 });
 const satellite = L.layerGroup([esriSat, esriLabels]);
 
-esriTopo.addTo(map);
-L.control.layers({ 'טופוגרפית': esriTopo, 'רחובות': esriStreets, 'לוויין': satellite }, null, { position: 'topright' }).addTo(map);
+satellite.addTo(map);
+L.control.layers(
+  { 'לוויין': satellite, 'טופוגרפית': esriTopo, 'רחובות': esriStreets },
+  null,
+  { position: 'topright' }
+).addTo(map);
 
-// ============ COLORS ============
+// =====================================================
+// COLORS
+// =====================================================
 const typeColors = {
   ghetto: '#e67e22', massacre: '#e74c3c', escape: '#2ecc71',
   hiding: '#3498db', partisan: '#9b59b6', camp: '#95a5a6'
 };
 
-// ============ MARKERS ============
+// =====================================================
+// MARKERS
+// =====================================================
 const markers = {};
 const allCoords = [];
 
@@ -419,10 +1353,11 @@ events.forEach((event, idx) => {
   markers[event.id] = marker;
 });
 
-// ============ DISTANCE LABELS LAYER ============
+// =====================================================
+// DISTANCE LABELS LAYER
+// =====================================================
 const distanceLayerGroup = L.layerGroup().addTo(map);
 
-// ============ DISTANCE HELPER ============
 function haverDist(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -444,50 +1379,38 @@ function distLabel(km, extra) {
   ">✈ ${km} ק"מ${extra ? ' · ' + extra : ''}</div>`;
 }
 
-// ============ ROUTE LINES + DISTANCE LABELS ============
-
-// Zhetl internal events (1-6) - within town, no distance label
+// Route lines + distance labels
 const zhetlCoords = events.slice(0,6).map(e => [e.lat, e.lng]);
 L.polyline(zhetlCoords, { color: '#e74c3c', weight: 2.5, opacity: 0.5, dashArray: '4,6' }).addTo(map);
 
-// Kuna → Novogrudok (6 → 7): transport by trucks
 const d67 = haverDist(53.4560,25.3980, 53.5942,25.8194);
 const m67 = midpoint(53.4560,25.3980, 53.5942,25.8194);
 L.polyline([[53.4560,25.3980],[53.5942,25.8194]], { color: '#95a5a6', weight: 3, opacity: 0.65, dashArray: '10,6' }).addTo(map);
 L.marker(m67, { icon: L.divIcon({ className:'x', html: distLabel(d67,'במשאיות'), iconSize:null, iconAnchor:[55,10] }), interactive:false }).addTo(distanceLayerGroup);
 
-// Novogrudok → Dvorets escape (7 → 9): on foot, two nights
 const d79 = haverDist(53.5942,25.8194, 53.4069,25.5706);
 const m79 = midpoint(53.5942,25.8194, 53.4069,25.5706);
 L.polyline([[53.5942,25.8194],[53.5100,25.6800],[53.4069,25.5706]], { color: '#2ecc71', weight: 3, opacity: 0.7, dashArray: '6,8' }).addTo(map);
 L.marker(m79, { icon: L.divIcon({ className:'x', html: distLabel(d79,'רגלית - שני לילות'), iconSize:null, iconAnchor:[80,10] }), interactive:false }).addTo(distanceLayerGroup);
 
-// Zhetl → Dvorets (reference distance from diary)
-const dZD = haverDist(53.4614,25.4072, 53.4069,25.5706);
-// (mentioned in diary as ~12 km - shown in Dvorets card)
-
-// Dvorets internal (9 → 10)
 L.polyline([[53.4069,25.5706],[53.4075,25.5720]], { color: '#e74c3c', weight: 2, opacity: 0.5 }).addTo(map);
 
-// Dvorets → wandering (10 → 11)
 const d1011 = haverDist(53.4075,25.5720, 53.4300,25.4900);
 const m1011 = midpoint(53.4075,25.5720, 53.4300,25.4900);
 L.polyline([[53.4075,25.5720],[53.4300,25.4900]], { color: '#3498db', weight: 2.5, opacity: 0.6, dashArray: '4,4' }).addTo(map);
 L.marker(m1011, { icon: L.divIcon({ className:'x', html: distLabel(d1011,'רגלית בלילות'), iconSize:null, iconAnchor:[65,10] }), interactive:false }).addTo(distanceLayerGroup);
 
-// Wandering → robbery village (11 → 12)
 const d1112 = haverDist(53.4300,25.4900, 53.4150,25.5500);
 const m1112 = midpoint(53.4300,25.4900, 53.4150,25.5500);
 L.polyline([[53.4300,25.4900],[53.4150,25.5500]], { color: '#3498db', weight: 2.5, opacity: 0.6, dashArray: '4,4' }).addTo(map);
 L.marker(m1112, { icon: L.divIcon({ className:'x', html: distLabel(d1112), iconSize:null, iconAnchor:[35,10] }), interactive:false }).addTo(distanceLayerGroup);
 
-// Robbery village → partisans forest (12 → 13): by cart
 const d1213 = haverDist(53.4150,25.5500, 53.4000,25.1500);
 const m1213 = midpoint(53.4150,25.5500, 53.4000,25.1500);
 L.polyline([[53.4150,25.5500],[53.4000,25.1500]], { color: '#9b59b6', weight: 3, opacity: 0.7, dashArray: '8,5' }).addTo(map);
 L.marker(m1213, { icon: L.divIcon({ className:'x', html: distLabel(d1213,'בעגלה עם הפרטיזנים'), iconSize:null, iconAnchor:[80,10] }), interactive:false }).addTo(distanceLayerGroup);
 
-// ============ CONTEXT CITIES ============
+// Context cities
 contextCities.forEach(city => {
   const icon = L.divIcon({
     className: 'x',
@@ -501,7 +1424,7 @@ contextCities.forEach(city => {
     });
 });
 
-// ============ HEBREW PLACE LABELS ON MAP ============
+// Hebrew place labels
 const labels = [
   { name: 'זטיל (Dyatlovo)', lat: 53.4660, lng: 25.4072, size: '14px' },
   { name: 'נובוגרודק', lat: 53.6020, lng: 25.8194, size: '13px' },
@@ -524,7 +1447,7 @@ labels.forEach(l => {
   }).addTo(map);
 });
 
-// ============ LEGEND ============
+// Legend
 const legend = L.control({ position: 'topleft' });
 legend.onAdd = function() {
   const d = L.DomUtil.create('div');
@@ -540,10 +1463,9 @@ legend.onAdd = function() {
 };
 legend.addTo(map);
 
-// ============ DISTANCE SCALE ============
 L.control.scale({ imperial: false, position: 'bottomright' }).addTo(map);
 
-// ============ DISTANCE TOGGLE BUTTON ============
+// Distance toggle
 const distToggle = L.control({ position: 'topright' });
 distToggle.onAdd = function() {
   const btn = L.DomUtil.create('button');
@@ -577,16 +1499,89 @@ distToggle.onAdd = function() {
 };
 distToggle.addTo(map);
 
-// ============ SIDEBAR TIMELINE ============
+// =====================================================
+// FEATURE 2: HISTORICAL MAP OVERLAY (real map image on the map)
+// =====================================================
+// 1820 Grodno Governorate map from Wikimedia Commons - covers the entire journey area
+const histMapUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a2/1820_%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%B5%D0%BD%D1%81%D0%BA%D0%B0%D1%8F_%D0%93%D1%83%D0%B1%D0%B5%D1%80%D0%BD%D0%B8%D1%8F_%D0%B8_%D0%91%D0%B5%D0%BB%D0%BE%D1%81%D1%82%D0%BE%D0%BA%D1%81%D0%BA%D0%B0%D1%8F_%D0%9E%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C.jpg';
+// Approximate bounding box for Grodno Governorate + Bialystok Oblast (1820 map)
+const histMapBounds = L.latLngBounds([[51.8, 22.5], [54.3, 27.2]]);
+let histOverlay = L.imageOverlay(histMapUrl, histMapBounds, { opacity: 0.7, interactive: false });
+let histActive = false;
+
+const histToggle = L.control({ position: 'topright' });
+histToggle.onAdd = function() {
+  const container = L.DomUtil.create('div');
+  container.style.cssText = 'direction:rtl;';
+
+  const btn = L.DomUtil.create('button', '', container);
+  btn.innerHTML = '🗺 מפה היסטורית';
+  btn.title = 'שכבת מפה היסטורית של גובנרית גרודנו (1820)';
+  btn.style.cssText = `
+    display:block; padding:6px 14px; cursor:pointer;
+    background:rgba(30,30,46,0.95); color:#b8b0a0;
+    border:1px solid rgba(180,170,150,0.2); border-radius:8px;
+    font-family:'David Libre',serif; font-size:14px; font-weight:700;
+    box-shadow:0 2px 6px rgba(0,0,0,0.4);
+    transition: all 0.3s; margin-top:4px;
+  `;
+
+  const slider = L.DomUtil.create('input', '', container);
+  slider.type = 'range'; slider.min = '10'; slider.max = '100'; slider.value = '70';
+  slider.style.cssText = 'display:none; width:100%; margin-top:4px; accent-color:#8a9aab;';
+  slider.title = 'שקיפות המפה ההיסטורית';
+
+  L.DomEvent.on(slider, 'input', () => {
+    histOverlay.setOpacity(slider.value / 100);
+  });
+  L.DomEvent.disableClickPropagation(container);
+
+  L.DomEvent.on(btn, 'click', (e) => {
+    L.DomEvent.stopPropagation(e);
+    histActive = !histActive;
+    if (histActive) {
+      histOverlay.addTo(map);
+      btn.style.background = 'rgba(50,50,70,0.95)';
+      btn.style.color = '#d4c5a0';
+      btn.style.borderColor = 'rgba(180,170,150,0.4)';
+      slider.style.display = 'block';
+    } else {
+      histOverlay.remove();
+      btn.style.background = 'rgba(30,30,46,0.95)';
+      btn.style.color = '#b8b0a0';
+      btn.style.borderColor = 'rgba(180,170,150,0.2)';
+      slider.style.display = 'none';
+    }
+  });
+  return container;
+};
+histToggle.addTo(map);
+
+// =====================================================
+// SIDEBAR TIMELINE
+// =====================================================
+const periodNames = {1:'גטו זטיל · 1941-1942', 2:'טבח ובריחה · 1942', 3:'מחנה ונדודים · 1942-1943', 4:'פרטיזנים · 1943'};
+let lastPeriod = 0;
+const readCards = new Set();
+
 const timelineEl = document.getElementById('timeline');
 events.forEach((event, idx) => {
+  // Period divider
+  if (event.period !== lastPeriod) {
+    lastPeriod = event.period;
+    const divider = document.createElement('div');
+    divider.className = 'period-divider';
+    divider.dataset.period = event.period;
+    divider.innerHTML = `<div class="period-divider-line"></div><span class="period-divider-label">${periodNames[event.period]}</span><div class="period-divider-line"></div>`;
+    timelineEl.appendChild(divider);
+  }
   const card = document.createElement('div');
   card.className = 'event-card';
   card.dataset.id = event.id;
   card.dataset.period = event.period;
+  card.dataset.idx = idx;
   const color = typeColors[event.type];
 
-  // Distance from previous significant location (skip internal Zhetl events)
   let distBadge = '';
   if (idx > 0) {
     const prev = events[idx - 1];
@@ -600,25 +1595,83 @@ events.forEach((event, idx) => {
     }
   }
 
+  const contextHtml = event.context ? `
+    <div class="context-section" onclick="event.stopPropagation()">
+      <button class="context-toggle" onclick="event.stopPropagation();(function(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');})(this)">
+        <span class="arrow">◀</span> קרא עוד · הקשר היסטורי
+      </button>
+      <div class="context-links">
+        ${event.context.map(c => `
+          <div class="context-link-item">
+            <a href="${c.url}" target="_blank" rel="noopener">${c.icon} ${c.label}</a>
+            ${c.note ? `<div class="context-note">${c.note}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
   card.innerHTML = `
     <div class="date"><span class="step-num" style="background:${color}">${idx+1}</span> ${event.date} ${distBadge}</div>
     <div class="location-name">${event.hebrewName}</div>
     <div class="description">${event.description}</div>
     ${event.quote ? `<div class="card-quote">${event.quote}</div>` : ''}
     <span class="event-type type-${event.type}">${event.typeLabel}</span>
+    ${contextHtml}
+    <div class="card-nav">
+      <button class="card-nav-btn" onclick="event.stopPropagation();navigateStation(${idx+1})" ${idx >= events.length-1 ? 'disabled' : ''}>← התחנה הבאה</button>
+      <span class="card-nav-counter">${idx+1} / ${events.length}</span>
+      <button class="card-nav-btn" onclick="event.stopPropagation();navigateStation(${idx-1})" ${idx <= 0 ? 'disabled' : ''}>התחנה הקודמת →</button>
+    </div>
   `;
   card.addEventListener('click', () => {
-    document.querySelectorAll('.event-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    // שיפור 1: גלילה אוטומטית לכרטיס הפעיל
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    map.flyTo([event.lat, event.lng], event.id <= 6 ? 14 : 12, { duration: 1.2 });
-    markers[event.id].openPopup();
+    activateStation(idx);
   });
   timelineEl.appendChild(card);
 });
 
-// ============ PERIOD FILTERS ============
+// =====================================================
+// STATION NAVIGATION + PROGRESS
+// =====================================================
+function activateStation(idx) {
+  const event = events[idx];
+  const cards = document.querySelectorAll('.event-card');
+  cards.forEach(c => c.classList.remove('active'));
+  cards[idx].classList.add('active');
+  cards[idx].classList.add('read');
+  readCards.add(idx);
+  cards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  map.flyTo([event.lat, event.lng], event.id <= 6 ? 14 : 12, { duration: 1.2 });
+  markers[event.id].openPopup();
+  updateProgress(idx);
+}
+
+function navigateStation(idx) {
+  if (idx >= 0 && idx < events.length) {
+    activateStation(idx);
+  }
+}
+
+function updateProgress(idx) {
+  const pct = Math.round(((idx + 1) / events.length) * 100);
+  const fill = document.getElementById('journey-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+}
+
+function startJourney() {
+  const overlay = document.getElementById('welcome-overlay');
+  overlay.classList.add('fade-out');
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    // Show the full route briefly, then zoom to station 1
+    map.flyToBounds(L.latLngBounds(allCoords).pad(0.15), { duration: 1.5 });
+    setTimeout(() => {
+      activateStation(0);
+    }, 2000);
+  }, 800);
+}
+
+// Period filters
 document.querySelectorAll('.period-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -626,6 +1679,9 @@ document.querySelectorAll('.period-btn').forEach(btn => {
     const p = btn.dataset.period;
     document.querySelectorAll('.event-card').forEach(c => {
       c.style.display = (p === 'all' || c.dataset.period === p) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.period-divider').forEach(d => {
+      d.style.display = (p === 'all' || d.dataset.period === p) ? 'flex' : 'none';
     });
     if (p !== 'all') {
       const pe = events.filter(e => e.period == p);
@@ -635,6 +1691,322 @@ document.querySelectorAll('.period-btn').forEach(btn => {
     }
   });
 });
+
+// =====================================================
+// TABS SYSTEM
+// =====================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+  });
+});
+
+// =====================================================
+// FEATURE 1: FAMILY CARDS + ICS GENERATION
+// =====================================================
+
+function isoToICS(isoDate) {
+  // Returns YYYYMMDD format for ICS
+  return isoDate.replace(/-/g, '');
+}
+
+function nextDay(isoDate) {
+  const d = new Date(isoDate);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0].replace(/-/g, '');
+}
+
+function makeGCalURL(member, year) {
+  const dateField = year === 2026 ? member.yahrzeitGregorian2026 : member.yahrzeitGregorian2025;
+  const startDate = isoToICS(dateField);
+  const endDate = nextDay(dateField);
+  const title = encodeURIComponent('יארצייט - ' + member.name);
+  const hebcalUrl = 'https://www.hebcal.com/yahrzeit?names=' + encodeURIComponent(member.nameEn) + '&dates=' + member.isoDate + '&years=5';
+  const details = encodeURIComponent(
+    member.yahrzeitHebrew + ' - יום השנה לפטירת ' + member.name +
+    '\n' + member.location +
+    '\n\nשים לב: התאריך הלועזי משתנה כל שנה כי הייארצייט נקבע לפי הלוח העברי.' +
+    '\nלחישוב התאריך בשנים הבאות: ' + hebcalUrl +
+    '\n\n' + member.story
+  );
+  // No RRULE - Hebrew calendar dates shift each year in Gregorian
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`;
+}
+
+// Fetch yahrzeit dates from Hebcal API and generate ICS with 50 years of correct dates
+async function fetchYahrzeitDates(member) {
+  const body = `cfg=json&years=50&n1=${encodeURIComponent(member.nameEn)}&t1=Yahrzeit&d1=${member.deathDay}&m1=${member.deathMonth}&y1=${member.deathYear}`;
+  const resp = await fetch('https://www.hebcal.com/yahrzeit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body
+  });
+  const data = await resp.json();
+  return data.items || [];
+}
+
+async function makeSingleICS(member) {
+  const btn = event.target || event.srcElement;
+  const origText = btn.textContent;
+  btn.textContent = '...טוען תאריכים';
+  btn.disabled = true;
+
+  try {
+    const items = await fetchYahrzeitDates(member);
+    const now = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+
+    const icsLines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Gabriel Gretzovsky Memorial//HE',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:יארצייט - ' + member.name,
+      'X-WR-CALDESC:' + member.yahrzeitHebrew + ' - 50 שנות ייארצייט לפי הלוח העברי'
+    ];
+
+    items.forEach((item, i) => {
+      const dateStr = item.date.replace(/-/g, '');
+      const d = new Date(item.date);
+      d.setDate(d.getDate() + 1);
+      const endStr = d.toISOString().split('T')[0].replace(/-/g, '');
+      const yr = item.date.split('-')[0];
+      icsLines.push(
+        'BEGIN:VEVENT',
+        'UID:' + member.id + '-yahrzeit-' + yr + '@gretzovsky-memorial',
+        'DTSTAMP:' + now,
+        'DTSTART;VALUE=DATE:' + dateStr,
+        'DTEND;VALUE=DATE:' + endStr,
+        'SUMMARY:🕯 יארצייט - ' + member.name + ' (' + item.hdate + ')',
+        'DESCRIPTION:' + member.yahrzeitHebrew + ' - יום השנה לפטירת ' + member.name + '\\n' + item.hdate + '\\n' + member.location + '\\n\\n' + member.story,
+        'END:VEVENT'
+      );
+    });
+
+    icsLines.push('END:VCALENDAR');
+    downloadICS(icsLines.join('\r\n'), 'yahrzeit-' + member.id + '-50years.ics');
+  } catch (err) {
+    alert('שגיאה בטעינת תאריכים מ-Hebcal. נסה שוב.');
+    console.error(err);
+  }
+
+  btn.textContent = origText;
+  btn.disabled = false;
+}
+
+async function downloadAllICS() {
+  const btn = document.querySelector('.btn-download-all');
+  const origText = btn.textContent;
+  btn.textContent = '...טוען 50 שנות ייארצייט מ-Hebcal';
+  btn.disabled = true;
+
+  try {
+    const now = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+    const icsLines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Gabriel Gretzovsky Memorial//HE',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:ייארצייטים - משפחת גרצובסקי',
+      'X-WR-CALDESC:50 שנות ייארצייט לכל 6 בני המשפחה - לפי הלוח העברי'
+    ];
+
+    // Fetch all family members in parallel
+    const allResults = await Promise.all(familyMembers.map(m => fetchYahrzeitDates(m)));
+
+    familyMembers.forEach((member, memberIdx) => {
+      const items = allResults[memberIdx];
+      items.forEach(item => {
+        const dateStr = item.date.replace(/-/g, '');
+        const d = new Date(item.date);
+        d.setDate(d.getDate() + 1);
+        const endStr = d.toISOString().split('T')[0].replace(/-/g, '');
+        const yr = item.date.split('-')[0];
+        icsLines.push(
+          'BEGIN:VEVENT',
+          'UID:' + member.id + '-yahrzeit-' + yr + '@gretzovsky-memorial',
+          'DTSTAMP:' + now,
+          'DTSTART;VALUE=DATE:' + dateStr,
+          'DTEND;VALUE=DATE:' + endStr,
+          'SUMMARY:🕯 יארצייט - ' + member.name + ' (' + item.hdate + ')',
+          'DESCRIPTION:' + member.yahrzeitHebrew + ' - ' + item.hdate + '\\n' + member.location + '\\n\\n' + member.story,
+          'END:VEVENT'
+        );
+      });
+    });
+
+    icsLines.push('END:VCALENDAR');
+    downloadICS(icsLines.join('\r\n'), 'yahrzeits-gretzovsky-family-50years.ics');
+  } catch (err) {
+    alert('שגיאה בטעינת תאריכים. נסה שוב.');
+    console.error(err);
+  }
+
+  btn.textContent = origText;
+  btn.disabled = false;
+}
+
+function downloadICS(content, filename) {
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function submitReminderForm(e) {
+  e.preventDefault();
+  const email = document.getElementById('reminder-email').value;
+  const formData = new FormData();
+  formData.append('email', email);
+  formData.append('_subject', 'הרשמה לתזכורות ייארצייט - משפחת גרצובסקי');
+
+  const msg = document.getElementById('form-success-msg');
+  msg.style.display = 'block';
+  msg.textContent = '✓ כתובת הדוא"ל נשמרה: ' + email + '. כרגע שירות התזכורות בהקמה - בינתיים הורד את הייארצייטים כקובץ ICS למעלה.';
+  msg.style.color = '#8a9aab';
+  document.getElementById('reminder-email').value = '';
+  // Store locally for now
+  try { localStorage.setItem('yahrzeit_email', email); } catch(e) {}
+}
+
+// Render family cards
+const familyContainer = document.getElementById('family-cards-container');
+familyMembers.forEach(member => {
+  const card = document.createElement('div');
+  card.className = 'family-card';
+
+  const gcalUrl2026 = makeGCalURL(member, 2026);
+
+  card.innerHTML = `
+    <div class="family-card-name">🕯 ${member.name}</div>
+    <div class="family-card-relation">${member.relation}</div>
+    <div class="family-card-dates">
+      <span class="family-date-badge">✡ ${member.hebrewDate}</span>
+      <span class="family-date-badge">${member.gregorianDate}</span>
+      <span class="family-location-badge">📍 ${member.location}</span>
+    </div>
+    <div class="family-card-story">${member.story}</div>
+    <div class="family-card-quote">"${member.quote}"</div>
+    <div class="family-card-dates" style="margin-top:8px;margin-bottom:4px;flex-direction:column;gap:4px;">
+      <span style="font-size:0.78em;color:#777;">ייארצייט ${member.yahrzeitHebrew} · בלוח הלועזי 2026: ${member.yahrzeitGregorian2026}</span>
+      <span style="font-size:0.72em;color:#555;">התאריך הלועזי משתנה כל שנה (לוח עברי)</span>
+    </div>
+    <div class="family-card-actions">
+      <a class="btn-cal btn-gcal" href="${gcalUrl2026}" target="_blank">📅 הוסף ליומן 2026</a>
+      <button class="btn-cal btn-ics" onclick="makeSingleICS(familyMembers.find(m=>m.id==='${member.id}'))">⬇ הורד ICS</button>
+      <a class="btn-cal btn-ics" href="https://www.hebcal.com/yahrzeit?names=${encodeURIComponent(member.nameEn)}&dates=${member.isoDate}&years=5" target="_blank" style="font-size:0.75em;">📆 תאריכים לשנים הבאות</a>
+    </div>
+  `;
+  familyContainer.appendChild(card);
+});
+
+// =====================================================
+// FEATURE 3: PHOTO GALLERY + LIGHTBOX
+// =====================================================
+let currentPhotoIndex = 0;
+
+function renderPhotosGrid() {
+  const grid = document.getElementById('photos-grid');
+  historicPhotos.forEach((photo, idx) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb';
+    thumb.onclick = () => openLightbox(idx);
+
+    const imgWrapper = document.createElement('div');
+    imgWrapper.style.position = 'relative';
+
+    const img = document.createElement('img');
+    img.src = photo.url;
+    img.alt = photo.description;
+    img.loading = 'lazy';
+
+    img.onerror = function() {
+      this.style.display = 'none';
+      const errDiv = document.createElement('div');
+      errDiv.className = 'photo-error';
+      errDiv.innerHTML = `<span style="font-size:1.8em;">🖼</span><span>תמונה לא זמינה</span><a href="${photo.sourceUrl}" target="_blank" onclick="event.stopPropagation()" style="color:#c9a84c;font-size:0.85em;">פתח מקור</a>`;
+      imgWrapper.appendChild(errDiv);
+    };
+
+    imgWrapper.appendChild(img);
+    thumb.appendChild(imgWrapper);
+
+    const caption = document.createElement('div');
+    caption.className = 'photo-thumb-caption';
+    caption.innerHTML = `<div class="photo-thumb-city">${photo.city}</div><div class="photo-thumb-year">${photo.year}</div>`;
+    thumb.appendChild(caption);
+
+    grid.appendChild(thumb);
+  });
+}
+
+function openLightbox(idx) {
+  currentPhotoIndex = idx;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function lightboxNav(dir) {
+  currentPhotoIndex = (currentPhotoIndex + dir + historicPhotos.length) % historicPhotos.length;
+  updateLightbox();
+}
+
+function updateLightbox() {
+  const photo = historicPhotos[currentPhotoIndex];
+  const container = document.getElementById('lb-img-container');
+  container.innerHTML = '';
+
+  const img = document.createElement('img');
+  img.src = photo.url;
+  img.alt = photo.description;
+
+  img.onerror = function() {
+    this.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'lb-error';
+    errDiv.innerHTML = `<span style="font-size:3em;">🖼</span><span>תמונה לא זמינה</span><a href="${photo.sourceUrl}" target="_blank">פתח במקור</a>`;
+    container.appendChild(errDiv);
+  };
+
+  container.appendChild(img);
+
+  document.getElementById('lb-city').textContent = photo.city;
+  document.getElementById('lb-year').textContent = photo.year;
+  document.getElementById('lb-desc').textContent = photo.description;
+  document.getElementById('lb-source').innerHTML = `מקור: <a href="${photo.sourceUrl}" target="_blank">${photo.source}</a>`;
+  document.getElementById('lb-counter').textContent = `${currentPhotoIndex + 1} / ${historicPhotos.length}`;
+  document.getElementById('lb-prev').disabled = false;
+  document.getElementById('lb-next').disabled = false;
+}
+
+// Close lightbox on overlay click
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+// Close lightbox on ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') { if (document.getElementById('lightbox').classList.contains('open')) lightboxNav(1); }
+  if (e.key === 'ArrowRight') { if (document.getElementById('lightbox').classList.contains('open')) lightboxNav(-1); }
+});
+
+// Init photos grid
+renderPhotosGrid();
 </script>
 </body>
 </html>
